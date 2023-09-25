@@ -154,3 +154,76 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use core::panic;
+
+    use serde_json::json;
+    use thiserror::Error;
+
+    use crate::api::ApiError;
+
+    #[derive(Debug, Error)]
+    #[error("my error")]
+    enum MyError {}
+
+    #[test]
+    fn marketstack_error_error() {
+        let obj = json! {{
+            "error": "error contents"
+        }};
+
+        let err: ApiError<MyError> = ApiError::from_marketstack(obj);
+        if let ApiError::Marketstack { msg } = err {
+            assert_eq!(msg, "error contents");
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[test]
+    fn marketstack_error_message_string() {
+        let obj = json!({
+            "message": "error contents"
+        });
+
+        let err: ApiError<MyError> = ApiError::from_marketstack(obj);
+        if let ApiError::Marketstack { msg } = err {
+            assert_eq!(msg, "error contents");
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[test]
+    fn marketstack_error_object() {
+        let err_obj = json!({
+            "blah": "foo",
+        });
+        let obj = json!({
+            "message": err_obj
+        });
+
+        let err: ApiError<MyError> = ApiError::from_marketstack(obj);
+        if let ApiError::MarketstackObject { obj } = err {
+            assert_eq!(obj, err_obj);
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[test]
+    fn marketstack_error_message_unrecognized() {
+        let err_obj = json!({
+            "some_weird_key": "an even weirder value",
+        });
+
+        let err: ApiError<MyError> = ApiError::from_marketstack(err_obj.clone());
+        if let ApiError::MarketstackUnrecognized { obj } = err {
+            assert_eq!(obj, err_obj);
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+}
