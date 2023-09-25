@@ -2,6 +2,12 @@
 name = "marketstack-rs"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Rust bindings for Marketstack REST API"
+homepage = "https://github.com/reubenwong97/marketstack-rs/"
+documentation = "https://github.com/reubenwong97/marketstack-rs/"
+repository = "https://github.com/reubenwong97/marketstack-rs/"
+readme = "https://github.com/reubenwong97/marketstack-rs/README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
