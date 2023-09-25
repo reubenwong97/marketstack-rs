@@ -3,6 +3,7 @@
 // This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::any;
 use std::error::Error;
 
 use thiserror::Error;
@@ -89,4 +90,67 @@ where
         typename: &'static str,
     },
     // TODO: implement pagination error
+}
+
+impl<E> ApiError<E>
+where
+    E: Error + Send + Sync + 'static,
+{
+    /// Create an API error in a client error.
+    pub fn client(source: E) -> Self {
+        ApiError::Client { source }
+    }
+
+    /// Wrap a client error in another wrapper.
+    pub fn map_client<F, W>(self, f: F) -> ApiError<W>
+    where
+        F: FnOnce(E) -> W,
+        W: Error + Send + Sync + 'static,
+    {
+        match self {
+            Self::Client { source } => ApiError::client(f(source)),
+            Self::UrlParse { source } => ApiError::UrlParse { source },
+            Self::Body { source } => ApiError::Body { source },
+            Self::Json { source } => ApiError::Json { source },
+            Self::Marketstack { msg } => ApiError::Marketstack { msg },
+            Self::MarketstackService { status, data } => {
+                ApiError::MarketstackService { status, data }
+            }
+            Self::MarketstackObject { obj } => ApiError::MarketstackObject { obj },
+            Self::MarketstackUnrecognized { obj } => ApiError::MarketstackUnrecognized { obj },
+            Self::DataType { source, typename } => ApiError::DataType { source, typename },
+        }
+    }
+
+    pub(crate) fn server_error(status: http::StatusCode, body: &bytes::Bytes) -> Self {
+        Self::MarketstackService {
+            status,
+            data: body.into_iter().copied().collect(),
+        }
+    }
+
+    pub(crate) fn from_marketstack(value: serde_json::Value) -> Self {
+        let error_value = value
+            .pointer("/message")
+            .or_else(|| value.pointer("/error"));
+
+        if let Some(error_value) = error_value {
+            if let Some(msg) = error_value.as_str() {
+                ApiError::Marketstack { msg: msg.into() }
+            } else {
+                ApiError::MarketstackObject {
+                    obj: error_value.clone(),
+                }
+            }
+        } else {
+            ApiError::MarketstackUnrecognized { obj: value }
+        }
+    }
+
+    pub(crate) fn data_type<T>(source: serde_json::Error) -> Self {
+        ApiError::DataType {
+            source,
+            typename: any::type_name::<T>(),
+        }
+    }
 }
