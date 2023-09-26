@@ -8,6 +8,8 @@ use std::error::Error;
 
 use thiserror::Error;
 
+use crate::api::PaginationError;
+
 /// Errors which may occur when creating form data.
 #[derive(Debug, Error)]
 #[non_exhaustive]
@@ -89,7 +91,13 @@ where
         /// The name of the type that could not be deserialized.
         typename: &'static str,
     },
-    // TODO: implement pagination error
+    /// An error with pagination occured.
+    #[error("failed to handle for pagination: {}", source)]
+    Pagination {
+        /// The source of the error.
+        #[from]
+        source: PaginationError,
+    },
 }
 
 impl<E> ApiError<E>
@@ -119,6 +127,7 @@ where
             Self::MarketstackObject { obj } => ApiError::MarketstackObject { obj },
             Self::MarketstackUnrecognized { obj } => ApiError::MarketstackUnrecognized { obj },
             Self::DataType { source, typename } => ApiError::DataType { source, typename },
+            Self::Pagination { source } => ApiError::Pagination { source },
         }
     }
 
