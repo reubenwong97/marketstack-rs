@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT"
 description = "Rust bindings for Marketstack REST API"
 homepage = "https://github.com/reubenwong97/marketstack-rs/"
-documentation = "https://github.com/reubenwong97/marketstack-rs/"
+documentation = "https://docs.rs/marketstack-rs/"
 repository = "https://github.com/reubenwong97/marketstack-rs/"
 readme = "README.md"
 
@@ -13,7 +13,10 @@ readme = "README.md"
 
 [dependencies]
 derive_builder = "~0.12"
-reqwest = { version = "~0.11.19", features = ["blocking", "json"], default-features = false, optional = true }
+reqwest = { version = "~0.11.19", features = [
+  "blocking",
+  "json",
+], default-features = false, optional = true }
 http = "~0.2"
 serde = { version = "~1.0.103", features = ["derive"] }
 serde_json = "^1.0.25"
