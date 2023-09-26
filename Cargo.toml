@@ -24,6 +24,7 @@ serde_urlencoded = "~0.7"
 url = "^2.1"
 bytes = "1.5.0"
 thiserror = "1.0.48"
+async-trait = "0.1.73"
 
 [dev-dependencies]
 dotenvy = "0.15.7"
