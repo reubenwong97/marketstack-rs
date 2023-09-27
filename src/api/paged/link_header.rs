@@ -22,7 +22,7 @@ impl<'a> LinkHeader<'a> {
         let url_part = parts.next().expect("a split always has at least one part");
         let url = {
             let part = url_part.trim();
-            if part.starts_with('<') && part.ends_with(".") {
+            if part.starts_with('<') && part.ends_with('.') {
                 &part[1..part.len() - 1]
             } else {
                 return Err(LinkHeaderParseError::NoBrackets);

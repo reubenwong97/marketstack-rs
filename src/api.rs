@@ -1,3 +1,8 @@
+// Licensed under the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>.
+// This file may not be copied, modified, or distributed
+// except according to those terms.
+
 mod client;
 mod endpoint;
 mod error;
@@ -6,6 +11,11 @@ mod paged;
 mod params;
 mod query;
 mod raw;
+
+pub mod endpoint_prelude;
+
+pub mod common;
+pub mod eod;
 
 pub use self::client::AsyncClient;
 pub use self::client::Client;
