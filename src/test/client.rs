@@ -36,3 +36,17 @@ pub struct ExpectedUrl {
     #[builder(default = "false")]
     pub paginated: bool,
 }
+
+impl ExpectedUrlBuilder {
+    pub fn add_query_params(&mut self, pairs: &[(&'static str, &'static str)]) -> &mut Self {
+        self.query
+            .get_or_insert_with(Vec::new)
+            .extend(pairs.iter().cloned().map(|(k, v)| (k.into(), v.into())));
+        self
+    }
+
+    pub fn body_str(&mut self, body: &str) -> &mut Self {
+        self.body = Some(body.bytes().collect());
+        self
+    }
+}

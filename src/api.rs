@@ -5,6 +5,7 @@ mod ignore;
 mod paged;
 mod params;
 mod query;
+mod raw;
 
 pub mod endpoint_prelude;
 
