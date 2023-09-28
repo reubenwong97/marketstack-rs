@@ -46,7 +46,7 @@ impl Default for Pagination {
 }
 
 // TODO: determine max page size
-const MAX_PAGE_SIZE: usize = 100;
+const MAX_PAGE_SIZE: usize = 1000;
 
 impl Pagination {
     pub(crate) fn page_limit(self) -> usize {

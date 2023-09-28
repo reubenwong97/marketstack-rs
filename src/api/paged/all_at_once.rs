@@ -75,12 +75,12 @@ where
 
                 {
                     let mut pairs = page_url.query_pairs_mut();
-                    pairs.append_pair("per_page", &per_page_str);
+                    pairs.append_pair("limit", &per_page_str);
 
                     if use_keyset_pagination {
                         pairs.append_pair("pagination", "keyset");
                     } else {
-                        pairs.append_pair("page", &page_str);
+                        pairs.append_pair("offset", &page_str);
                     }
                 }
 

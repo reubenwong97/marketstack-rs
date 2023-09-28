@@ -92,7 +92,7 @@ impl Page {
         match self {
             Self::Number(page) => {
                 let page_str = page.to_string();
-                pairs.append_pair("page", &page_str);
+                pairs.append_pair("offset", &page_str);
             }
             Self::Keyset(_) => {
                 pairs.append_pair("pagination", "keyset");
@@ -180,7 +180,7 @@ where
 
             {
                 let mut pairs = url.query_pairs_mut();
-                pairs.append_pair("per_page", &per_page_str);
+                pairs.append_pair("limit", &per_page_str);
 
                 next_page.apply_to(&mut pairs);
             }
