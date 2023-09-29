@@ -3,6 +3,8 @@
 // This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::collections::BTreeSet;
+
 use derive_builder::Builder;
 
 use time::Date;
@@ -15,12 +17,9 @@ use crate::api::ParamValue;
 #[derive(Debug, Builder, Clone)]
 #[builder(setter(strip_option))]
 pub struct Eod<'a> {
-    /// Access key for querying API.
-    #[builder(setter(into), default)]
-    access_key: Cow<'a, str>,
     /// Search for eod for a symbol.
     #[builder(setter(into), default)]
-    symbols: Cow<'a, str>,
+    symbols: BTreeSet<Cow<'a, str>>,
     /// Exchange to filer symbol by.
     #[builder(setter(into), default)]
     exchange: Option<Cow<'a, str>>,
@@ -38,5 +37,31 @@ pub struct Eod<'a> {
 impl<'a> Eod<'a> {
     pub fn builder() -> EodBuilder<'a> {
         EodBuilder::default()
+    }
+}
+
+impl<'a> EodBuilder<'a> {
+    pub fn search_symbols<I>(&mut self, iter: I) -> &mut Self
+    where
+        I: Iterator<Item = Cow<'a, str>>,
+    {
+        self.symbols.get_or_insert_with(BTreeSet::new).extend(iter);
+        self
+    }
+}
+
+impl<'a> Endpoint for Eod<'a> {
+    fn method(&self) -> Method {
+        Method::GET
+    }
+
+    fn endpoint(&self) -> Cow<'static, str> {
+        "eod".into()
+    }
+
+    fn parameters(&self) -> QueryParams {
+        let mut params = QueryParams::default();
+
+        params
     }
 }
