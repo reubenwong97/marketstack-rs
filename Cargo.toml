@@ -25,9 +25,12 @@ url = "^2.1"
 bytes = "1.5.0"
 thiserror = "1.0.48"
 async-trait = "0.1.73"
-chrono = "0.4.31"
+chrono = { version = "0.4.31", default-features = false, features = [
+  "clock",
+  "serde",
+] }
 futures-util = "0.3.28"
-time = "0.3.29"
+itertools = "0.11.0"
 
 [dev-dependencies]
 dotenvy = "0.15.7"

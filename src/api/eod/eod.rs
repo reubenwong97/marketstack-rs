@@ -5,9 +5,8 @@
 
 use std::collections::BTreeSet;
 
+use chrono::NaiveDate;
 use derive_builder::Builder;
-
-use time::Date;
 
 use crate::api::common::SortOrder;
 use crate::api::endpoint_prelude::*;
@@ -28,10 +27,10 @@ pub struct Eod<'a> {
     sort: Option<SortOrder>,
     /// Date to query EOD data from.
     #[builder(default)]
-    date_from: Option<Date>,
+    date_from: Option<NaiveDate>,
     /// Date to query EOD date to.
     #[builder(default)]
-    date_to: Option<Date>,
+    date_to: Option<NaiveDate>,
 }
 
 impl<'a> Eod<'a> {
