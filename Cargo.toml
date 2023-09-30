@@ -1,5 +1,5 @@
 [package]
-name = "marketstack-rs"
+name = "marketstack"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
@@ -31,3 +31,4 @@ reqwest = { version = "~0.11.20", features = ["blocking", "json"] }
 
 [dev-dependencies]
 dotenvy = "0.15.7"
+tokio = { version = "1.18.5", features = ["macros", "rt-multi-thread"] }
