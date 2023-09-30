@@ -83,3 +83,106 @@ where
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use http::StatusCode;
+    use serde_json::json;
+
+    use crate::api::endpoint_prelude::*;
+    use crate::api::{self, ApiError, AsyncQuery, Query};
+    use crate::test::client::{ExpectedUrl, SingleTestClient};
+
+    struct Dummy;
+
+    impl Endpoint for Dummy {
+        fn method(&self) -> Method {
+            Method::GET
+        }
+
+        fn endpoint(&self) -> Cow<'static, str> {
+            "dummy".into()
+        }
+    }
+
+    #[derive(Debug)]
+    struct DummyResult {
+        #[allow(dead_code)]
+        value: u8,
+    }
+
+    #[test]
+    fn test_marketstack_non_json_response() {
+        let endpoint = ExpectedUrl::builder().endpoint("dummy").build().unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "not json");
+
+        api::ignore(Dummy).query(&client).unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_marketstack_non_json_response_async() {
+        let endpoint = ExpectedUrl::builder().endpoint("dummy").build().unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "not json");
+
+        api::ignore(Dummy).query_async(&client).await.unwrap()
+    }
+
+    #[test]
+    fn test_marketstack_error_bad_json() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("dummy")
+            .status(StatusCode::NOT_FOUND)
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let err = api::ignore(Dummy).query(&client).unwrap_err();
+        if let ApiError::MarketstackService { status, .. } = err {
+            assert_eq!(status, http::StatusCode::NOT_FOUND);
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[test]
+    fn test_marketstack_error_detection() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("dummy")
+            .status(StatusCode::NOT_FOUND)
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_json(
+            endpoint,
+            &json!({
+                "message": "dummy error message",
+            }),
+        );
+
+        let err = api::ignore(Dummy).query(&client).unwrap_err();
+        if let ApiError::Marketstack { msg } = err {
+            assert_eq!(msg, "dummy error message");
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[test]
+    fn test_marketstack_error_detection_unknown() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("dummy")
+            .status(StatusCode::NOT_FOUND)
+            .build()
+            .unwrap();
+        let err_obj = json!({
+            "bogus": "dummy error message",
+        });
+        let client = SingleTestClient::new_json(endpoint, &err_obj);
+
+        let err = api::ignore(Dummy).query(&client).unwrap_err();
+        if let ApiError::MarketstackUnrecognized { obj } = err {
+            assert_eq!(obj, err_obj);
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+}
