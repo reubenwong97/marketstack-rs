@@ -1,11 +1,11 @@
 [package]
 name = "marketstack"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 license = "MIT"
 description = "Rust bindings for Marketstack REST API"
 homepage = "https://github.com/reubenwong97/marketstack-rs/"
-documentation = "https://docs.rs/marketstack-rs/"
+documentation = "https://docs.rs/marketstack/"
 repository = "https://github.com/reubenwong97/marketstack-rs/"
 readme = "README.md"
 
