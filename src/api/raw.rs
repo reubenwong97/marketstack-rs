@@ -89,8 +89,8 @@ mod tests {
     use http::StatusCode;
     use serde_json::json;
 
+    use crate::api::endpoint_prelude::*;
     use crate::api::{self, ApiError, AsyncQuery, Query};
-    use crate::api::{endpoint, endpoint_prelude::*};
     use crate::test::client::{ExpectedUrl, SingleTestClient};
 
     struct Dummy;

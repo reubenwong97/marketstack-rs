@@ -10,14 +10,13 @@ use derive_builder::Builder;
 
 use crate::api::common::SortOrder;
 use crate::api::endpoint_prelude::*;
-use crate::api::ParamValue;
 
 /// Query for eod.
 #[derive(Debug, Builder, Clone)]
 #[builder(setter(strip_option))]
 pub struct Eod<'a> {
     /// Search for eod for a symbol.
-    #[builder(setter(into), default)]
+    #[builder(setter(name = "_symbols"), default)]
     symbols: BTreeSet<Cow<'a, str>>,
     /// Exchange to filer symbol by.
     #[builder(setter(into), default)]
@@ -40,11 +39,23 @@ impl<'a> Eod<'a> {
 }
 
 impl<'a> EodBuilder<'a> {
-    pub fn search_symbols<I>(&mut self, iter: I) -> &mut Self
+    /// Search the given symbol.
+    pub fn symbol(&mut self, symbol: &'a str) -> &mut Self {
+        self.symbols
+            .get_or_insert_with(BTreeSet::new)
+            .insert(symbol.into());
+        self
+    }
+
+    /// Search the given symbols.
+    pub fn symbols<I, V>(&mut self, iter: I) -> &mut Self
     where
-        I: Iterator<Item = Cow<'a, str>>,
+        I: Iterator<Item = V>,
+        V: Into<Cow<'a, str>>,
     {
-        self.symbols.get_or_insert_with(BTreeSet::new).extend(iter);
+        self.symbols
+            .get_or_insert_with(BTreeSet::new)
+            .extend(iter.map(|v| v.into()));
         self
     }
 }
@@ -62,5 +73,132 @@ impl<'a> Endpoint for Eod<'a> {
         let mut params = QueryParams::default();
 
         params
+            .extend(self.symbols.iter().map(|value| ("symbols", value)))
+            .push_opt("exchange", self.exchange.as_ref())
+            .push_opt("sort", self.sort)
+            .push_opt("date_from", self.date_from)
+            .push_opt("date_to", self.date_to);
+
+        params
+    }
+}
+
+impl<'a> Pageable for Eod<'a> {
+    fn use_keyset_pagination(&self) -> bool {
+        false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::borrow::BorrowMut;
+
+    use chrono::NaiveDate;
+
+    use crate::api::common::SortOrder;
+    use crate::api::eod::Eod;
+    use crate::api::{self, endpoint_prelude, Query};
+    use crate::test::client::{ExpectedUrl, SingleTestClient};
+
+    #[test]
+    fn defaults_are_sufficient() {
+        Eod::builder().build().unwrap();
+    }
+
+    #[test]
+    fn endpoint() {
+        let endpoint = ExpectedUrl::builder().endpoint("eod").build().unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Eod::builder().build().unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn endpoint_symbol() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod")
+            .add_query_params(&[("symbols", "AAPL")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Eod::builder().symbol("AAPL").build().unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn endpoint_symbols() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod")
+            .add_query_params(&[("symbols", "AAPL"), ("symbols", "GOOG")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Eod::builder()
+            .symbol("AAPL")
+            .symbols(["AAPL", "GOOG"].iter().copied())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn endpoint_exchange() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod")
+            .add_query_params(&[("exchange", "NYSE")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Eod::builder().exchange("NYSE").build().unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn endpoint_sort() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod")
+            .add_query_params(&[("sort", "ASC")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Eod::builder().sort(SortOrder::Ascending).build().unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn date_from() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod")
+            .add_query_params(&[("date_from", "2020-01-01")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Eod::builder()
+            .date_from(NaiveDate::from_ymd_opt(2020, 1, 1).unwrap())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn date_to() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod")
+            .add_query_params(&[("date_to", "2020-01-01")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Eod::builder()
+            .date_to(NaiveDate::from_ymd_opt(2020, 1, 1).unwrap())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
     }
 }
