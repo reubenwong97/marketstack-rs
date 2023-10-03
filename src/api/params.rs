@@ -9,6 +9,7 @@ use chrono::{DateTime, NaiveDate, Utc};
 use url::Url;
 
 use crate::api::BodyError;
+use crate::auth::Auth;
 
 /// A trait representing a parameter value.
 pub trait ParamValue<'a> {
@@ -79,6 +80,14 @@ impl ParamValue<'static> for DateTime<Utc> {
 impl ParamValue<'static> for NaiveDate {
     fn as_value(&self) -> Cow<'static, str> {
         format!("{}", self.format("%Y-%m-%d")).into()
+    }
+}
+
+impl ParamValue<'static> for Auth {
+    fn as_value(&self) -> Cow<'static, str> {
+        match self {
+            Auth::Token(token) => token.clone().into(),
+        }
     }
 }
 
