@@ -122,7 +122,7 @@ where
         let next_page = if paged.endpoint.use_keyset_pagination() {
             Page::Keyset(KeysetPage::First)
         } else {
-            Page::Number(1)
+            Page::Number(0)
         };
 
         let page_state = PageState {
@@ -175,12 +175,12 @@ where
             let mut url = client.rest_endpoint(&self.paged.endpoint.endpoint())?;
             self.paged.endpoint.parameters().add_to_url(&mut url);
 
-            let per_page = self.paged.pagination.page_limit();
-            let per_page_str = per_page.to_string();
+            let limit = self.paged.pagination.page_limit();
+            let limit_str = limit.to_string();
 
             {
                 let mut pairs = url.query_pairs_mut();
-                pairs.append_pair("limit", &per_page_str);
+                pairs.append_pair("limit", &limit_str);
 
                 next_page.apply_to(&mut pairs);
             }
@@ -351,5 +351,325 @@ where
         }
 
         self.current_page.pop().map(Ok)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use core::panic;
+
+    use futures_util::TryStreamExt;
+    use http::StatusCode;
+    use serde::{Deserialize, Serialize};
+    use serde_json::json;
+
+    use crate::api::endpoint_prelude::*;
+    use crate::api::{self, ApiError, Pagination};
+    use crate::test::client::{ExpectedUrl, PagedTestClient, SingleTestClient};
+
+    #[derive(Debug, Default)]
+    struct Dummy {
+        with_keyset: bool,
+    }
+
+    impl Endpoint for Dummy {
+        fn method(&self) -> Method {
+            Method::GET
+        }
+
+        fn endpoint(&self) -> Cow<'static, str> {
+            "paged_dummy".into()
+        }
+    }
+
+    impl Pageable for Dummy {
+        fn use_keyset_pagination(&self) -> bool {
+            self.with_keyset
+        }
+    }
+
+    #[derive(Debug, Deserialize, Serialize)]
+    struct DummyResult {
+        value: u8,
+    }
+
+    #[test]
+    fn test_marketstack_non_json_response() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("paged_dummy")
+            .add_query_params(&[("offset", "0"), ("limit", "1000")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "not json");
+        let endpoint = Dummy::default();
+
+        let res: Result<Vec<DummyResult>, _> = api::paged(endpoint, Pagination::All)
+            .iter(&client)
+            .collect();
+        let err = res.unwrap_err();
+        if let ApiError::MarketstackService { status, .. } = err {
+            assert_eq!(status, http::StatusCode::OK);
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_marketstack_non_json_response_async() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("paged_dummy")
+            .add_query_params(&[("offset", "0"), ("limit", "1000")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "not json");
+        let endpoint = Dummy::default();
+
+        let res: Result<Vec<DummyResult>, _> = api::paged(endpoint, Pagination::All)
+            .iter_async(&client)
+            .try_collect()
+            .await;
+        let err = res.unwrap_err();
+        if let ApiError::MarketstackService { status, .. } = err {
+            assert_eq!(status, http::StatusCode::OK);
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[test]
+    fn test_marketstack_error_bad_json() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("paged_dummy")
+            .add_query_params(&[("offset", "0"), ("limit", "1000")])
+            .status(StatusCode::NOT_FOUND)
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+        let endpoint = Dummy::default();
+
+        let res: Result<Vec<DummyResult>, _> = api::paged(endpoint, Pagination::All)
+            .iter(&client)
+            .collect();
+        let err = res.unwrap_err();
+        if let ApiError::MarketstackService { status, .. } = err {
+            assert_eq!(status, http::StatusCode::NOT_FOUND);
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_marketstack_error_bad_json_async() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("paged_dummy")
+            .add_query_params(&[("offset", "0"), ("limit", "1000")])
+            .status(StatusCode::NOT_FOUND)
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+        let endpoint = Dummy::default();
+
+        let res: Result<Vec<DummyResult>, _> = api::paged(endpoint, Pagination::All)
+            .iter_async(&client)
+            .try_collect()
+            .await;
+        let err = res.unwrap_err();
+        if let ApiError::MarketstackService { status, .. } = err {
+            assert_eq!(status, http::StatusCode::NOT_FOUND);
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[test]
+    fn test_marketstack_error_detection() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("paged_dummy")
+            .add_query_params(&[("offset", "0"), ("limit", "1000")])
+            .status(StatusCode::NOT_FOUND)
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_json(
+            endpoint,
+            &json!({
+                "message": "dummy error message",
+            }),
+        );
+        let endpoint = Dummy::default();
+
+        let res: Result<Vec<DummyResult>, _> = api::paged(endpoint, Pagination::All)
+            .iter(&client)
+            .collect();
+        let err = res.unwrap_err();
+        if let ApiError::Marketstack { msg } = err {
+            assert_eq!(msg, "dummy error message");
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_marketstack_error_detection_async() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("paged_dummy")
+            .add_query_params(&[("offset", "0"), ("limit", "1000")])
+            .status(StatusCode::NOT_FOUND)
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_json(
+            endpoint,
+            &json!({
+                "message": "dummy error message",
+            }),
+        );
+        let endpoint = Dummy::default();
+
+        let res: Result<Vec<DummyResult>, _> = api::paged(endpoint, Pagination::All)
+            .iter_async(&client)
+            .try_collect()
+            .await;
+        let err = res.unwrap_err();
+        if let ApiError::Marketstack { msg } = err {
+            assert_eq!(msg, "dummy error message");
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[test]
+    fn test_markestack_error_detection_unknown() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("paged_dummy")
+            .add_query_params(&[("offset", "0"), ("limit", "1000")])
+            .status(StatusCode::NOT_FOUND)
+            .build()
+            .unwrap();
+        let err_obj = json!({
+            "bogus": "dummy error message",
+        });
+        let client = SingleTestClient::new_json(endpoint, &err_obj);
+        let endpoint = Dummy::default();
+
+        let res: Result<Vec<DummyResult>, _> = api::paged(endpoint, Pagination::All)
+            .iter(&client)
+            .collect();
+        let err = res.unwrap_err();
+        if let ApiError::MarketstackUnrecognized { obj } = err {
+            assert_eq!(obj, err_obj);
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_marketstack_error_detection_unknown_async() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("paged_dummy")
+            .add_query_params(&[("offset", "0"), ("limit", "1000")])
+            .status(StatusCode::NOT_FOUND)
+            .build()
+            .unwrap();
+        let err_obj = json!({
+            "bogus": "dummy error message",
+        });
+        let client = SingleTestClient::new_json(endpoint, &err_obj);
+        let endpoint = Dummy::default();
+
+        let res: Result<Vec<DummyResult>, _> = api::paged(endpoint, Pagination::All)
+            .iter_async(&client)
+            .try_collect()
+            .await;
+        let err = res.unwrap_err();
+        if let ApiError::MarketstackUnrecognized { obj } = err {
+            assert_eq!(obj, err_obj);
+        } else {
+            panic!("unexpected error: {}", err);
+        }
+    }
+
+    #[test]
+    fn test_pagination_limit() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("paged_dummy")
+            .paginated(true)
+            .build()
+            .unwrap();
+        let client =
+            PagedTestClient::new_raw(endpoint, (0..=255).map(|value| DummyResult { value }));
+        let query = Dummy { with_keyset: false };
+
+        let res: Vec<DummyResult> = api::paged(query, Pagination::Limit(25))
+            .iter(&client)
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        assert_eq!(res.len(), 25);
+        for (i, value) in res.iter().enumerate() {
+            assert_eq!(value.value, i as u8);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_pagination_limit_async() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("paged_dummy")
+            .paginated(true)
+            .build()
+            .unwrap();
+        let client =
+            PagedTestClient::new_raw(endpoint, (0..=255).map(|value| DummyResult { value }));
+        let query = Dummy { with_keyset: false };
+
+        let res: Vec<DummyResult> = api::paged(query, Pagination::Limit(25))
+            .iter_async(&client)
+            .try_collect()
+            .await
+            .unwrap();
+        assert_eq!(res.len(), 25);
+        for (i, value) in res.iter().enumerate() {
+            assert_eq!(value.value, i as u8);
+        }
+    }
+
+    #[test]
+    fn test_pagination_all() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("paged_dummy")
+            .paginated(true)
+            .build()
+            .unwrap();
+        let client =
+            PagedTestClient::new_raw(endpoint, (0..=255).map(|value| DummyResult { value }));
+        let query = Dummy::default();
+
+        let res: Vec<DummyResult> = api::paged(query, Pagination::All)
+            .iter(&client)
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
+        assert_eq!(res.len(), 256);
+        for (i, value) in res.iter().enumerate() {
+            assert_eq!(value.value, i as u8);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_pagination_all_async() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("paged_dummy")
+            .paginated(true)
+            .build()
+            .unwrap();
+        let client =
+            PagedTestClient::new_raw(endpoint, (0..=255).map(|value| DummyResult { value }));
+        let query = Dummy::default();
+
+        let res: Vec<DummyResult> = api::paged(query, Pagination::All)
+            .iter_async(&client)
+            .try_collect()
+            .await
+            .unwrap();
+        assert_eq!(res.len(), 256);
+        for (i, value) in res.iter().enumerate() {
+            assert_eq!(value.value, i as u8);
+        }
     }
 }

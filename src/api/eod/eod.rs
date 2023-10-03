@@ -91,13 +91,12 @@ impl<'a> Pageable for Eod<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::BorrowMut;
 
     use chrono::NaiveDate;
 
     use crate::api::common::SortOrder;
     use crate::api::eod::Eod;
-    use crate::api::{self, endpoint_prelude, Query};
+    use crate::api::{self, Query};
     use crate::test::client::{ExpectedUrl, SingleTestClient};
 
     #[test]

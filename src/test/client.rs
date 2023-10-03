@@ -73,6 +73,7 @@ impl ExpectedUrl {
                 continue;
             }
 
+            println!("{:?}", self.query.iter());
             let found = self.query.iter().any(|(expected_key, expected_value)| {
                 key == expected_key && value == expected_value
             });
@@ -220,8 +221,9 @@ impl Page {
     fn range(self) -> Range<usize> {
         match self {
             Page::ByNumber { number, size } => {
-                assert_ne!(number, 0);
-                let start = size * (number) - 1;
+                // Marketstack offset defaults to 0
+                assert_eq!(number, 0);
+                let start = size * (number);
                 start..start + size
             }
         }
@@ -233,6 +235,7 @@ pub struct PagedTestClient<T> {
     data: Vec<T>,
 }
 
+const KEYSET_QUERY_PARAM: &str = "__test_keyset";
 const DEFAULT_PAGE_SIZE: usize = 20;
 
 impl<T> PagedTestClient<T> {
@@ -307,7 +310,7 @@ where
         }
 
         let offset = Page::ByNumber {
-            number: offset.unwrap_or(1),
+            number: offset.unwrap_or(0),
             size: limit,
         };
         let range = {
@@ -321,6 +324,29 @@ where
         assert_eq!(*request.method(), Method::GET);
 
         let response = Response::builder().status(self.expected.status);
+        let response = if pagination {
+            if range.end + 1 < self.data.len() {
+                // Generate the URL for the next page.
+                let next_url = {
+                    let mut next_url = url.clone();
+                    next_url
+                        .query_pairs_mut()
+                        .clear()
+                        .extend_pairs(
+                            url.query_pairs()
+                                .filter(|(key, _)| key != KEYSET_QUERY_PARAM),
+                        )
+                        .append_pair(KEYSET_QUERY_PARAM, &format!("{}", range.end));
+                    next_url
+                };
+                let next_header = format!("<{}>; rel=\"next\"", next_url);
+                response.header(http::header::LINK, next_header)
+            } else {
+                response
+            }
+        } else {
+            response
+        };
 
         let data_page = &self.data[range];
 
