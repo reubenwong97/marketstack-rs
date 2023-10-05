@@ -15,3 +15,5 @@ Cargo.lock
 
 # Project specific ignores
 .env
+# Platform specific ignores
+.cargo
