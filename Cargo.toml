@@ -1,6 +1,6 @@
 [package]
 name = "marketstack"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
 license = "MIT"
 description = "Rust bindings for Marketstack REST API"
