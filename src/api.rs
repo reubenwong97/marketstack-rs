@@ -3,6 +3,7 @@
 // This file may not be copied, modified, or distributed
 // except according to those terms.
 
+mod basic;
 mod client;
 mod endpoint;
 mod error;
@@ -46,3 +47,5 @@ pub use self::query::Query;
 
 pub use self::raw::raw;
 pub use self::raw::Raw;
+
+pub use self::basic::BasicEndpoint;

@@ -25,8 +25,8 @@ impl Endpoint for BasicEndpoint {
 
 #[cfg(test)]
 mod tests {
+    use crate::api::basic::BasicEndpoint;
     use crate::api::{self, Query};
-    use crate::test::basic::BasicEndpoint;
     use crate::test::client::{ExpectedUrl, SingleTestClient};
 
     #[test]

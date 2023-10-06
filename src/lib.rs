@@ -3,6 +3,7 @@
 pub mod api;
 mod auth;
 mod marketstack;
+pub mod types;
 
 #[cfg(test)]
 mod test;
