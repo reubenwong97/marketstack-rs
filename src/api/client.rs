@@ -12,6 +12,7 @@ use http::Response;
 use url::Url;
 
 use crate::api::ApiError;
+use crate::auth::Auth;
 
 /// A trait representing a client which can communicate with a Marketstack instance via REST.
 pub trait RestClient {
@@ -22,6 +23,9 @@ pub trait RestClient {
     ///
     /// This method adds the hostname for the client's target instance.
     fn rest_endpoint(&self, endpoint: &str) -> Result<Url, ApiError<Self::Error>>;
+
+    /// Get the Auth token from the client.
+    fn get_auth(&self) -> Option<Auth>;
 }
 
 /// A trait representing a client which can communicate with a Marketstack instance.

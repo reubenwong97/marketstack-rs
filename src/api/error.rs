@@ -9,6 +9,7 @@ use std::error::Error;
 use thiserror::Error;
 
 use crate::api::PaginationError;
+use crate::auth::AuthError;
 
 /// Errors which may occur when creating form data.
 #[derive(Debug, Error)]
@@ -30,6 +31,12 @@ pub enum ApiError<E>
 where
     E: Error + Send + Sync + 'static,
 {
+    /// Missing authentication information.
+    #[error("missing auth error: {}", source)]
+    Auth {
+        /// The auth error.
+        source: AuthError,
+    },
     /// The client encountered an error.
     #[error("client error: {}", source)]
     Client {
@@ -116,6 +123,7 @@ where
         W: Error + Send + Sync + 'static,
     {
         match self {
+            Self::Auth { source } => ApiError::Auth { source },
             Self::Client { source } => ApiError::client(f(source)),
             Self::UrlParse { source } => ApiError::UrlParse { source },
             Self::Body { source } => ApiError::Body { source },
@@ -128,6 +136,12 @@ where
             Self::MarketstackUnrecognized { obj } => ApiError::MarketstackUnrecognized { obj },
             Self::DataType { source, typename } => ApiError::DataType { source, typename },
             Self::Pagination { source } => ApiError::Pagination { source },
+        }
+    }
+
+    pub(crate) fn auth_error() -> Self {
+        Self::Auth {
+            source: AuthError::MissingAuth,
         }
     }
 

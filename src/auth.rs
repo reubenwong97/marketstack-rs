@@ -2,6 +2,7 @@
 // <LICENSE-MIT or http://opensource.org/licenses/MIT>.
 // This file may not be copied, modified, or distributed
 // except according to those terms.
+use thiserror::Error;
 
 use crate::api::BasicEndpoint;
 use crate::api::{self, endpoint_prelude::*, Query};
@@ -27,8 +28,9 @@ impl Auth {
     }
 }
 
-pub fn with_auth<E: Endpoint>(auth: Auth, endpoint: E) -> impl Endpoint {
-    endpoint.parameters().push("access_key", auth);
-
-    endpoint
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum AuthError {
+    #[error("missing auth error")]
+    MissingAuth,
 }

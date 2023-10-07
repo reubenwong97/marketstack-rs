@@ -18,6 +18,7 @@ use thiserror::Error;
 use url::Url;
 
 use crate::api::{ApiError, AsyncClient, Client, RestClient};
+use crate::auth::Auth;
 
 #[derive(Debug, Builder)]
 pub struct ExpectedUrl {
@@ -117,6 +118,7 @@ const CLIENT_STUB: &str = "https://marketstack.host.invalid/v1";
 pub struct SingleTestClient {
     client: MockClient,
     expected: ExpectedUrl,
+    auth: Auth,
 }
 
 impl SingleTestClient {
@@ -134,10 +136,15 @@ impl SingleTestClient {
             status: expected.status,
             data: data.into(),
         };
+        let auth = Auth::Token("".into());
 
         client.response_map.insert(request, response);
 
-        Self { client, expected }
+        Self {
+            client,
+            expected,
+            auth,
+        }
     }
 
     pub fn new_json<T>(expected: ExpectedUrl, data: &T) -> Self
@@ -158,6 +165,10 @@ impl RestClient for SingleTestClient {
 
     fn rest_endpoint(&self, endpoint: &str) -> Result<Url, ApiError<Self::Error>> {
         Ok(Url::parse(&format!("{}/{}", CLIENT_STUB, endpoint))?)
+    }
+
+    fn get_auth(&self) -> Option<Auth> {
+        Some(self.auth.clone())
     }
 }
 
@@ -233,6 +244,7 @@ impl Page {
 pub struct PagedTestClient<T> {
     expected: ExpectedUrl,
     data: Vec<T>,
+    auth: Auth,
 }
 
 const KEYSET_QUERY_PARAM: &str = "__test_keyset";
@@ -246,6 +258,7 @@ impl<T> PagedTestClient<T> {
         Self {
             expected,
             data: data.into_iter().collect(),
+            auth: Auth::Token("".into()),
         }
     }
 }
@@ -255,6 +268,10 @@ impl<T> RestClient for PagedTestClient<T> {
 
     fn rest_endpoint(&self, endpoint: &str) -> Result<Url, ApiError<Self::Error>> {
         Ok(Url::parse(&format!("{}/{}", CLIENT_STUB, endpoint))?)
+    }
+
+    fn get_auth(&self) -> Option<Auth> {
+        Some(self.auth.clone())
     }
 }
 

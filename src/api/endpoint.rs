@@ -35,6 +35,12 @@ where
     C: Client,
 {
     fn query(&self, client: &C) -> Result<T, ApiError<<C>::Error>> {
+        let token = if let Some(token) = client.get_auth() {
+            token
+        } else {
+            return Err(ApiError::auth_error());
+        };
+        self.parameters().push("access_key", token);
         let mut url = client.rest_endpoint(&self.endpoint())?;
         self.parameters().add_to_url(&mut url);
 
@@ -70,6 +76,12 @@ where
     C: AsyncClient + Sync,
 {
     async fn query_async(&self, client: &C) -> Result<T, ApiError<C::Error>> {
+        let token = if let Some(token) = client.get_auth() {
+            token
+        } else {
+            return Err(ApiError::auth_error());
+        };
+        self.parameters().push("access_key", token);
         let mut url = client.rest_endpoint(&self.endpoint())?;
         self.parameters().add_to_url(&mut url);
 
