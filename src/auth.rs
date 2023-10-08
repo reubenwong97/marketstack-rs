@@ -4,8 +4,8 @@
 // except according to those terms.
 use thiserror::Error;
 
-use crate::api::BasicEndpoint;
-use crate::api::{self, endpoint_prelude::*, Query};
+use crate::api::{self, Query};
+use crate::api::{AsyncQuery, BasicEndpoint};
 use crate::types::BasicPublic;
 
 /// A Marketstack API token.
@@ -23,6 +23,19 @@ impl Auth {
         C: api::Client,
     {
         let _: BasicPublic = BasicEndpoint::builder().build().unwrap().query(api)?;
+
+        Ok(())
+    }
+
+    pub async fn check_connection_async<C>(&self, api: &C) -> Result<(), api::ApiError<C::Error>>
+    where
+        C: api::AsyncClient + Sync,
+    {
+        let _: BasicPublic = BasicEndpoint::builder()
+            .build()
+            .unwrap()
+            .query_async(api)
+            .await?;
 
         Ok(())
     }
