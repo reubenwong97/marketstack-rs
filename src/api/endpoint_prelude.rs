@@ -12,9 +12,9 @@ pub use std::borrow::Cow;
 
 pub use http::Method;
 
+pub use crate::api::paged::PageLimit;
 pub use crate::api::BodyError;
 pub use crate::api::Client;
 pub use crate::api::Endpoint;
 pub use crate::api::FormParams;
-pub use crate::api::Pageable;
 pub use crate::api::QueryParams;

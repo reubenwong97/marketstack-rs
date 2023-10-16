@@ -1,28 +1,27 @@
-// Licensed under the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>.
-// This file may not be copied, modified, or distributed
-// except according to those terms.
+use thiserror::Error;
 
-mod link_header;
-mod pagination;
+use crate::api::ApiError;
 
-mod all_at_once;
-mod lazy;
+/// New-type implementation reflecting pagination limits.
+#[derive(Clone, Debug)]
+pub struct PageLimit(u16);
 
-/// A trait to indicate that an endpoint is pageable.
-pub trait Pageable {
-    /// Whether the endpoint uses keyset pagination or not.
-    fn use_keyset_pagination(&self) -> bool {
-        false
+impl PageLimit {
+    /// Construct PageLimit type with appropriate checks on valid bounds.
+    pub fn new(limit: u16) -> Result<Self, ApiError<PaginationError>> {
+        if limit <= 1000 {
+            Ok(Self(limit))
+        } else {
+            Err(ApiError::Pagination {
+                source: PaginationError::ExceedLimit,
+            })
+        }
     }
 }
 
-pub use self::link_header::LinkHeaderParseError;
-
-pub use self::pagination::Pagination;
-pub use self::pagination::PaginationError;
-
-pub use self::all_at_once::paged;
-pub use self::all_at_once::Paged;
-
-pub use self::lazy::LazilyPagedIter;
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum PaginationError {
+    #[error("pagination exceeds limit error")]
+    ExceedLimit,
+}

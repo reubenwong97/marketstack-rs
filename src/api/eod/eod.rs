@@ -30,6 +30,12 @@ pub struct Eod<'a> {
     /// Date to query EOD date to.
     #[builder(default)]
     date_to: Option<NaiveDate>,
+    /// Pagination limit for API request.
+    #[builder(default)]
+    limit: Option<PageLimit>,
+    /// Pagination offset value for API request.
+    #[builder(default)]
+    offset: Option<u64>,
 }
 
 impl<'a> Eod<'a> {
@@ -84,12 +90,6 @@ impl<'a> Endpoint for Eod<'a> {
             .push_opt("date_to", self.date_to);
 
         params
-    }
-}
-
-impl<'a> Pageable for Eod<'a> {
-    fn use_keyset_pagination(&self) -> bool {
-        false
     }
 }
 

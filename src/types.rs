@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 /// Basic struct that acts as dummy.
 #[derive(Serialize, Deserialize, Debug, Clone)]

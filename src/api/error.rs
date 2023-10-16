@@ -8,7 +8,7 @@ use std::error::Error;
 
 use thiserror::Error;
 
-use crate::api::PaginationError;
+use crate::api::paged::PaginationError;
 use crate::auth::AuthError;
 
 /// Errors which may occur when creating form data.
@@ -36,6 +36,12 @@ where
     Auth {
         /// The auth error.
         source: AuthError,
+    },
+    /// Issues with setting pagination parameter.
+    #[error("pagination error: {}", source)]
+    Pagination {
+        /// The pagination error.
+        source: PaginationError,
     },
     /// The client encountered an error.
     #[error("client error: {}", source)]
@@ -97,13 +103,6 @@ where
         source: serde_json::Error,
         /// The name of the type that could not be deserialized.
         typename: &'static str,
-    },
-    /// An error with pagination occured.
-    #[error("failed to handle for pagination: {}", source)]
-    Pagination {
-        /// The source of the error.
-        #[from]
-        source: PaginationError,
     },
 }
 
