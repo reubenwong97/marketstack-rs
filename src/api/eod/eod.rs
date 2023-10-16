@@ -40,6 +40,10 @@ impl<'a> Eod<'a> {
 
 impl<'a> EodBuilder<'a> {
     /// Search the given symbol.
+    ///
+    /// This provides sane defaults for the user to call symbol()
+    /// on the builder without needing to wrap his symbol in a
+    /// BTreeSet beforehand.
     pub fn symbol(&mut self, symbol: &'a str) -> &mut Self {
         self.symbols
             .get_or_insert_with(BTreeSet::new)

@@ -5,13 +5,13 @@
 use thiserror::Error;
 
 use crate::api::{self, Query};
-use crate::api::{AsyncQuery, BasicEndpoint};
-use crate::types::BasicPublic;
+use crate::api::{eod, AsyncQuery};
+use crate::types::EodData;
 
 /// A Marketstack API token.
 ///
 /// Marketstack only supports one kind of token.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Auth {
     /// A personal access token, obtained through Marketstack dashboard.
     Token(String),
@@ -22,7 +22,11 @@ impl Auth {
     where
         C: api::Client,
     {
-        let _: BasicPublic = BasicEndpoint::builder().build().unwrap().query(api)?;
+        let eod_data: EodData = eod::Eod::builder()
+            .symbol("AAPL")
+            .build()
+            .unwrap()
+            .query(api)?;
 
         Ok(())
     }
@@ -31,7 +35,8 @@ impl Auth {
     where
         C: api::AsyncClient + Sync,
     {
-        let _: BasicPublic = BasicEndpoint::builder()
+        let eod_data: EodData = eod::Eod::builder()
+            .symbol("AAPL")
             .build()
             .unwrap()
             .query_async(api)

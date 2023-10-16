@@ -74,7 +74,6 @@ impl ExpectedUrl {
                 continue;
             }
 
-            println!("{:?}", self.query.iter());
             let found = self.query.iter().any(|(expected_key, expected_value)| {
                 key == expected_key && value == expected_value
             });
@@ -136,7 +135,7 @@ impl SingleTestClient {
             status: expected.status,
             data: data.into(),
         };
-        let auth = Auth::Token("".into());
+        let auth = Auth::Token("123".into());
 
         client.response_map.insert(request, response);
 

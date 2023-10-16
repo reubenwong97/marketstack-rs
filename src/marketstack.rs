@@ -5,12 +5,10 @@ use std::fmt::{self, Debug};
 use async_trait::async_trait;
 use bytes::Bytes;
 use http::{request, HeaderMap, Response as HttpResponse};
-use itertools::Itertools;
 use log::{debug, error, info};
 use reqwest::blocking::Client;
 use reqwest::Client as AsyncClient;
 use serde::de::DeserializeOwned;
-use serde::Deserialize;
 use thiserror::Error;
 use url::Url;
 
@@ -228,7 +226,6 @@ impl api::RestClient for Marketstack {
     type Error = RestError;
 
     fn rest_endpoint(&self, endpoint: &str) -> Result<Url, api::ApiError<Self::Error>> {
-        debug!(target: "marketstack", "REST api call {}", endpoint);
         Ok(self.rest_url.join(endpoint)?)
     }
 

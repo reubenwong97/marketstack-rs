@@ -40,10 +40,11 @@ where
         } else {
             return Err(ApiError::auth_error());
         };
-        self.parameters().push("access_key", token);
         let mut url = client.rest_endpoint(&self.endpoint())?;
-        self.parameters().add_to_url(&mut url);
-
+        // Mutate every query with parameters that pushes access_key by default.
+        self.parameters()
+            .push("access_key", token)
+            .add_to_url(&mut url);
         let req = Request::builder()
             .method(self.method())
             .uri(query::url_to_http_uri(url));
@@ -81,9 +82,11 @@ where
         } else {
             return Err(ApiError::auth_error());
         };
-        self.parameters().push("access_key", token);
         let mut url = client.rest_endpoint(&self.endpoint())?;
-        self.parameters().add_to_url(&mut url);
+        // Mutate every query with parameters that pushes access_key by default.
+        self.parameters()
+            .push("access_key", token)
+            .add_to_url(&mut url);
 
         let req = Request::builder()
             .method(self.method())
@@ -138,7 +141,11 @@ mod tests {
 
     #[test]
     fn test_marketstack_non_json_response() {
-        let endpoint = ExpectedUrl::builder().endpoint("dummy").build().unwrap();
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("dummy")
+            .add_query_params(&[("access_key", "123")])
+            .build()
+            .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "not json");
 
         let res: Result<DummyResult, _> = Dummy.query(&client);
@@ -152,7 +159,11 @@ mod tests {
 
     #[test]
     fn test_marketstack_empty_response() {
-        let endpoint = ExpectedUrl::builder().endpoint("dummy").build().unwrap();
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("dummy")
+            .add_query_params(&[("access_key", "123")])
+            .build()
+            .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
         let res: Result<DummyResult, _> = Dummy.query(&client);
@@ -168,6 +179,7 @@ mod tests {
     fn test_marketstack_error_bad_json() {
         let endpoint = ExpectedUrl::builder()
             .endpoint("dummy")
+            .add_query_params(&[("access_key", "123")])
             .status(StatusCode::NOT_FOUND)
             .build()
             .unwrap();
@@ -186,6 +198,7 @@ mod tests {
     fn test_marketstack_error_detection() {
         let endpoint = ExpectedUrl::builder()
             .endpoint("dummy")
+            .add_query_params(&[("access_key", "123")])
             .status(StatusCode::NOT_FOUND)
             .build()
             .unwrap();
@@ -209,6 +222,7 @@ mod tests {
     fn test_marketstack_error_detection_unknown() {
         let endpoint = ExpectedUrl::builder()
             .endpoint("dummy")
+            .add_query_params(&[("access_key", "123")])
             .status(StatusCode::NOT_FOUND)
             .build()
             .unwrap();
@@ -228,7 +242,11 @@ mod tests {
 
     #[test]
     fn test_bad_serialization() {
-        let endpoint = ExpectedUrl::builder().endpoint("dummy").build().unwrap();
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("dummy")
+            .add_query_params(&[("access_key", "123")])
+            .build()
+            .unwrap();
         let client = SingleTestClient::new_json(
             endpoint,
             &json!({
@@ -248,7 +266,11 @@ mod tests {
 
     #[test]
     fn test_good_deserialization() {
-        let endpoint = ExpectedUrl::builder().endpoint("dummy").build().unwrap();
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("dummy")
+            .add_query_params(&[("access_key", "123")])
+            .build()
+            .unwrap();
         let client = SingleTestClient::new_json(
             endpoint,
             &json!({
@@ -262,7 +284,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_good_deserialization_async() {
-        let endpoint = ExpectedUrl::builder().endpoint("dummy").build().unwrap();
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("dummy")
+            .add_query_params(&[("access_key", "123")])
+            .build()
+            .unwrap();
         let client = SingleTestClient::new_json(
             endpoint,
             &json!({
