@@ -106,7 +106,6 @@ impl<'a> Endpoint for Eod<'a> {
 mod tests {
 
     use chrono::NaiveDate;
-    use http::request::Builder;
 
     use crate::api::common::SortOrder;
     use crate::api::eod::Eod;

@@ -5,7 +5,7 @@ use std::fmt::{self, Debug};
 use async_trait::async_trait;
 use bytes::Bytes;
 use http::{request, HeaderMap, Response as HttpResponse};
-use log::{debug, error, info};
+use log::{debug, error};
 use reqwest::blocking::Client;
 use reqwest::Client as AsyncClient;
 use serde::de::DeserializeOwned;

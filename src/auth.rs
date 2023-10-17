@@ -22,7 +22,7 @@ impl Auth {
     where
         C: api::Client,
     {
-        let eod_data: EodData = eod::Eod::builder()
+        let _: EodData = eod::Eod::builder()
             .symbol("AAPL")
             .build()
             .unwrap()
@@ -35,7 +35,7 @@ impl Auth {
     where
         C: api::AsyncClient + Sync,
     {
-        let eod_data: EodData = eod::Eod::builder()
+        let _: EodData = eod::Eod::builder()
             .symbol("AAPL")
             .build()
             .unwrap()
