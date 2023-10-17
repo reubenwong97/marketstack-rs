@@ -106,6 +106,7 @@ impl<'a> Endpoint for Eod<'a> {
 mod tests {
 
     use chrono::NaiveDate;
+    use http::request::Builder;
 
     use crate::api::common::SortOrder;
     use crate::api::eod::Eod;
@@ -113,12 +114,12 @@ mod tests {
     use crate::test::client::{ExpectedUrl, SingleTestClient};
 
     #[test]
-    fn defaults_are_sufficient() {
+    fn eod_defaults_are_sufficient() {
         Eod::builder().build().unwrap();
     }
 
     #[test]
-    fn endpoint() {
+    fn eod_endpoint() {
         let endpoint = ExpectedUrl::builder().endpoint("eod").build().unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
@@ -127,7 +128,7 @@ mod tests {
     }
 
     #[test]
-    fn endpoint_symbol() {
+    fn eod_symbol() {
         let endpoint = ExpectedUrl::builder()
             .endpoint("eod")
             .add_query_params(&[("symbols", "AAPL")])
@@ -140,7 +141,7 @@ mod tests {
     }
 
     #[test]
-    fn endpoint_symbols() {
+    fn eod_symbols() {
         let endpoint = ExpectedUrl::builder()
             .endpoint("eod")
             .add_query_params(&[("symbols", "AAPL"), ("symbols", "GOOG")])
@@ -157,7 +158,7 @@ mod tests {
     }
 
     #[test]
-    fn endpoint_exchange() {
+    fn eod_exchange() {
         let endpoint = ExpectedUrl::builder()
             .endpoint("eod")
             .add_query_params(&[("exchange", "NYSE")])
@@ -170,7 +171,7 @@ mod tests {
     }
 
     #[test]
-    fn endpoint_sort() {
+    fn eod_sort() {
         let endpoint = ExpectedUrl::builder()
             .endpoint("eod")
             .add_query_params(&[("sort", "ASC")])
@@ -183,7 +184,7 @@ mod tests {
     }
 
     #[test]
-    fn date_from() {
+    fn eod_date_from() {
         let endpoint = ExpectedUrl::builder()
             .endpoint("eod")
             .add_query_params(&[("date_from", "2020-01-01")])
@@ -199,7 +200,7 @@ mod tests {
     }
 
     #[test]
-    fn date_to() {
+    fn eod_date_to() {
         let endpoint = ExpectedUrl::builder()
             .endpoint("eod")
             .add_query_params(&[("date_to", "2020-01-01")])
@@ -211,6 +212,37 @@ mod tests {
             .date_to(NaiveDate::from_ymd_opt(2020, 1, 1).unwrap())
             .build()
             .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn eod_limit() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod")
+            .add_query_params(&[("limit", "50")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Eod::builder().limit(50).unwrap().build().unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn eod_over_limit() {
+        assert!(Eod::builder().limit(9999).is_err());
+    }
+
+    #[test]
+    fn eod_offset() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod")
+            .add_query_params(&[("offset", "2")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Eod::builder().offset(2).build().unwrap();
         api::ignore(endpoint).query(&client).unwrap();
     }
 }

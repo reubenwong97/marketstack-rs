@@ -25,3 +25,28 @@ pub enum PaginationError {
     #[error("pagination exceeds limit error")]
     ExceedLimit,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::PageLimit;
+
+    #[test]
+    fn test_new() {
+        let limit = PageLimit::new(5);
+        assert!(limit.is_ok());
+
+        assert_eq!(limit.unwrap().0, 5);
+    }
+
+    #[test]
+    fn test_over_limit() {
+        let limit = PageLimit::new(9999);
+        assert!(limit.is_err());
+
+        let err_message = limit.err().unwrap();
+        assert_eq!(
+            err_message.to_string(),
+            "pagination error: pagination exceeds limit error"
+        );
+    }
+}
