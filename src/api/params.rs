@@ -8,7 +8,7 @@ use std::borrow::Cow;
 use chrono::{DateTime, NaiveDate, Utc};
 use url::Url;
 
-use crate::api::BodyError;
+use crate::api::{BodyError, PageLimit};
 use crate::auth::Auth;
 
 /// A trait representing a parameter value.
@@ -88,6 +88,12 @@ impl ParamValue<'static> for Auth {
         match self {
             Auth::Token(token) => token.clone().into(),
         }
+    }
+}
+
+impl ParamValue<'static> for PageLimit {
+    fn as_value(&self) -> Cow<'static, str> {
+        self.0.to_string().into()
     }
 }
 

@@ -9,7 +9,8 @@ use chrono::NaiveDate;
 use derive_builder::Builder;
 
 use crate::api::common::SortOrder;
-use crate::api::endpoint_prelude::*;
+use crate::api::paged::PaginationError;
+use crate::api::{endpoint_prelude::*, ApiError};
 
 /// Query for eod.
 #[derive(Debug, Builder, Clone)]
@@ -31,7 +32,7 @@ pub struct Eod<'a> {
     #[builder(default)]
     date_to: Option<NaiveDate>,
     /// Pagination limit for API request.
-    #[builder(default)]
+    #[builder(setter(name = "_limit"), default)]
     limit: Option<PageLimit>,
     /// Pagination offset value for API request.
     #[builder(default)]
@@ -68,6 +69,12 @@ impl<'a> EodBuilder<'a> {
             .extend(iter.map(|v| v.into()));
         self
     }
+
+    pub fn limit(&mut self, limit: u16) -> Result<&mut Self, ApiError<PaginationError>> {
+        let new = self;
+        new.limit = Some(Some(PageLimit::new(limit)?));
+        Ok(new)
+    }
 }
 
 impl<'a> Endpoint for Eod<'a> {
@@ -87,7 +94,9 @@ impl<'a> Endpoint for Eod<'a> {
             .push_opt("exchange", self.exchange.as_ref())
             .push_opt("sort", self.sort)
             .push_opt("date_from", self.date_from)
-            .push_opt("date_to", self.date_to);
+            .push_opt("date_to", self.date_to)
+            .push_opt("limit", self.limit.clone())
+            .push_opt("offset", self.offset);
 
         params
     }

@@ -4,7 +4,7 @@ use crate::api::ApiError;
 
 /// New-type implementation reflecting pagination limits.
 #[derive(Clone, Debug)]
-pub struct PageLimit(u16);
+pub struct PageLimit(pub u16);
 
 impl PageLimit {
     /// Construct PageLimit type with appropriate checks on valid bounds.
