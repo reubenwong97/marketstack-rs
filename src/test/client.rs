@@ -45,11 +45,6 @@ impl ExpectedUrlBuilder {
             .extend(pairs.iter().cloned().map(|(k, v)| (k.into(), v.into())));
         self
     }
-
-    pub fn body_str(&mut self, body: &str) -> &mut Self {
-        self.body = Some(body.bytes().collect());
-        self
-    }
 }
 
 impl ExpectedUrl {
@@ -248,19 +243,6 @@ pub struct PagedTestClient<T> {
 
 const KEYSET_QUERY_PARAM: &str = "__test_keyset";
 const DEFAULT_PAGE_SIZE: usize = 20;
-
-impl<T> PagedTestClient<T> {
-    pub fn new_raw<I>(expected: ExpectedUrl, data: I) -> Self
-    where
-        I: IntoIterator<Item = T>,
-    {
-        Self {
-            expected,
-            data: data.into_iter().collect(),
-            auth: Auth::Token("".into()),
-        }
-    }
-}
 
 impl<T> RestClient for PagedTestClient<T> {
     type Error = TestClientError;

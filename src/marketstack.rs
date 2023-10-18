@@ -299,4 +299,27 @@ impl AsyncMarketstack {
         };
         call().map_err(api::ApiError::client).await
     }
+
+    /// Create a new AyncMarketstack API representation.
+    ///
+    /// The `token` should be a valid [personal access token](https://marketstack.com/documentation).
+    /// Errors out if `token` is invalid.
+    pub async fn new<H, T>(host: H, token: T) -> MarketstackResult<Self>
+    where
+        H: AsRef<str>,
+        T: Into<String>,
+    {
+        Self::new_impl("https", host.as_ref(), Auth::Token(token.into())).await
+    }
+
+    /// Create a new non-SSL AsyncMarketstack API representation.
+    ///
+    /// A `token` will still be required for insecure access.
+    pub async fn new_insecure<H, T>(host: H, token: T) -> MarketstackResult<Self>
+    where
+        H: AsRef<str>,
+        T: Into<String>,
+    {
+        Self::new_impl("http", host.as_ref(), Auth::Token(token.into())).await
+    }
 }
