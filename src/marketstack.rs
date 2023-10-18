@@ -1,14 +1,12 @@
-use std::any;
 use std::convert::TryInto;
 use std::fmt::{self, Debug};
 
 use async_trait::async_trait;
 use bytes::Bytes;
-use http::{request, HeaderMap, Response as HttpResponse};
+use http::{request, Response as HttpResponse};
 use log::{debug, error};
 use reqwest::blocking::Client;
 use reqwest::Client as AsyncClient;
-use serde::de::DeserializeOwned;
 use thiserror::Error;
 use url::Url;
 
@@ -58,23 +56,6 @@ pub enum MarketstackError {
         #[from]
         source: api::ApiError<RestError>,
     },
-}
-
-impl MarketstackError {
-    fn http(status: reqwest::StatusCode) -> Self {
-        MarketstackError::Http { status }
-    }
-
-    fn no_response() -> Self {
-        MarketstackError::NoResponse {}
-    }
-
-    fn data_type<T>(source: serde_json::Error) -> Self {
-        MarketstackError::DataType {
-            source,
-            typename: any::type_name::<T>(),
-        }
-    }
 }
 
 type MarketstackResult<T> = Result<T, MarketstackError>;
@@ -152,22 +133,9 @@ impl Marketstack {
         MarketstackBuilder::new(host, token)
     }
 
-    fn send<T>(&self, req: reqwest::blocking::RequestBuilder) -> MarketstackResult<T>
-    where
-        T: DeserializeOwned,
-    {
-        let rsp = req.headers(HeaderMap::default()).send()?;
-        let status = rsp.status();
-        if status.is_server_error() {
-            return Err(MarketstackError::http(status));
-        }
-
-        serde_json::from_reader::<_, T>(rsp).map_err(MarketstackError::data_type::<T>)
-    }
-
     fn rest_simple(
         &self,
-        mut request: http::request::Builder,
+        request: http::request::Builder,
         body: Vec<u8>,
     ) -> Result<HttpResponse<Bytes>, api::ApiError<<Self as api::RestClient>::Error>> {
         let call = || -> Result<_, RestError> {
@@ -309,22 +277,9 @@ impl AsyncMarketstack {
         Ok(api)
     }
 
-    async fn send<T>(&self, req: reqwest::RequestBuilder) -> MarketstackResult<T>
-    where
-        T: DeserializeOwned,
-    {
-        let rsp = req.headers(HeaderMap::default()).send().await?;
-        let status = rsp.status();
-        if status.is_server_error() {
-            return Err(MarketstackError::http(status));
-        }
-
-        serde_json::from_slice::<T>(&rsp.bytes().await?).map_err(MarketstackError::data_type::<T>)
-    }
-
     async fn rest_async_simple(
         &self,
-        mut request: http::request::Builder,
+        request: http::request::Builder,
         body: Vec<u8>,
     ) -> Result<HttpResponse<Bytes>, api::ApiError<<Self as api::RestClient>::Error>> {
         use futures_util::TryFutureExt;
