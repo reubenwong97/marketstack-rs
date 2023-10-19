@@ -1,3 +1,4 @@
+use marketstack::api::common::SortOrder;
 use marketstack::api::{eod, AsyncQuery, Query};
 use marketstack::{AsyncMarketstack, EodData, Marketstack};
 
@@ -34,6 +35,21 @@ fn test_eod_paged() {
 
     assert_eq!(eod_result.pagination.limit, 5);
     assert_eq!(eod_result.data.len(), 5);
+}
+
+#[test]
+#[ignore]
+fn test_eod_sorting() {
+    let api_key = setup::setup_key();
+    let client = Marketstack::new_insecure("api.marketstack.com", api_key).unwrap();
+
+    let endpoint = eod::Eod::builder()
+        .symbol("AAPL")
+        .sort(SortOrder::Ascending)
+        .build()
+        .unwrap();
+
+    let _: EodData = endpoint.query(&client).unwrap();
 }
 
 #[tokio::test]

@@ -6,7 +6,12 @@
 #![allow(clippy::module_inception)]
 
 mod eod;
+mod eod_latest;
 
 pub use eod::Eod;
 pub use eod::EodBuilder;
 pub use eod::EodBuilderError;
+
+pub use eod_latest::EodLatest;
+pub use eod_latest::EodLatestBuilder;
+pub use eod_latest::EodLatestBuilderError;
