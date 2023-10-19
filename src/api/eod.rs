@@ -97,7 +97,7 @@ impl<'a> Endpoint for Eod<'a> {
     }
 }
 
-/// Query for eod.
+/// Query for eod/latest.
 #[derive(Debug, Builder, Clone)]
 #[builder(setter(strip_option))]
 pub struct EodLatest<'a> {
@@ -179,14 +179,98 @@ impl<'a> Endpoint for EodLatest<'a> {
     }
 }
 
+/// Query for eod/[date].
+#[derive(Debug, Builder, Clone)]
+#[builder(setter(strip_option))]
+pub struct EodDate<'a> {
+    /// Search for eod for a symbol.
+    #[builder(setter(name = "_symbols"), default)]
+    symbols: BTreeSet<Cow<'a, str>>,
+    /// Date to query EOD data for.
+    date: NaiveDate,
+    /// Exchange to filer symbol by.
+    #[builder(setter(into), default)]
+    exchange: Option<Cow<'a, str>>,
+    /// The sort order for the return results.
+    #[builder(default)]
+    sort: Option<SortOrder>,
+    /// Pagination limit for API request.
+    #[builder(setter(name = "_limit"), default)]
+    limit: Option<PageLimit>,
+    /// Pagination offset value for API request.
+    #[builder(default)]
+    offset: Option<u64>,
+}
+
+impl<'a> EodDate<'a> {
+    pub fn builder() -> EodDateBuilder<'a> {
+        EodDateBuilder::default()
+    }
+}
+
+impl<'a> EodDateBuilder<'a> {
+    /// Search the given symbol.
+    ///
+    /// This provides sane defaults for the user to call symbol()
+    /// on the builder without needing to wrap his symbol in a
+    /// BTreeSet beforehand.
+    pub fn symbol(&mut self, symbol: &'a str) -> &mut Self {
+        self.symbols
+            .get_or_insert_with(BTreeSet::new)
+            .insert(symbol.into());
+        self
+    }
+
+    /// Search the given symbols.
+    pub fn symbols<I, V>(&mut self, iter: I) -> &mut Self
+    where
+        I: Iterator<Item = V>,
+        V: Into<Cow<'a, str>>,
+    {
+        self.symbols
+            .get_or_insert_with(BTreeSet::new)
+            .extend(iter.map(|v| v.into()));
+        self
+    }
+
+    pub fn limit(&mut self, limit: u16) -> Result<&mut Self, ApiError<PaginationError>> {
+        let new = self;
+        new.limit = Some(Some(PageLimit::new(limit)?));
+        Ok(new)
+    }
+}
+
+impl<'a> Endpoint for EodDate<'a> {
+    fn method(&self) -> Method {
+        Method::GET
+    }
+
+    fn endpoint(&self) -> Cow<'static, str> {
+        // NaiveDate.to_string() would be e.g. 2022-01-01
+        format!("eod/{}", self.date).into()
+    }
+
+    fn parameters(&self) -> QueryParams {
+        let mut params = QueryParams::default();
+
+        params
+            .extend(self.symbols.iter().map(|value| ("symbols", value)))
+            .push_opt("exchange", self.exchange.as_ref())
+            .push_opt("sort", self.sort)
+            .push_opt("limit", self.limit.clone())
+            .push_opt("offset", self.offset);
+
+        params
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
     use chrono::NaiveDate;
 
     use crate::api::common::SortOrder;
-    use crate::api::eod::Eod;
-    use crate::api::eod::EodLatest;
+    use crate::api::eod::{Eod, EodDate, EodLatest};
     use crate::api::{self, Query};
     use crate::test::client::{ExpectedUrl, SingleTestClient};
 
@@ -427,6 +511,133 @@ mod tests {
         let client = SingleTestClient::new_raw(endpoint, "");
 
         let endpoint = EodLatest::builder().offset(2).build().unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn eod_date_endpoint() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod/2022-01-01")
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = EodDate::builder()
+            .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn eod_date_symbol() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod/2022-01-01")
+            .add_query_params(&[("symbols", "AAPL")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = EodDate::builder()
+            .symbol("AAPL")
+            .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn eod_date_symbols() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod/2022-01-01")
+            .add_query_params(&[("symbols", "AAPL"), ("symbols", "GOOG")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = EodDate::builder()
+            .symbol("AAPL")
+            .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
+            .symbols(["AAPL", "GOOG"].iter().copied())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn eod_date_exchange() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod/2022-01-01")
+            .add_query_params(&[("exchange", "NYSE")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = EodDate::builder()
+            .exchange("NYSE")
+            .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn eod_date_sort() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod/2022-01-01")
+            .add_query_params(&[("sort", "ASC")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = EodDate::builder()
+            .sort(SortOrder::Ascending)
+            .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn eod_date_limit() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod/2022-01-01")
+            .add_query_params(&[("limit", "50")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = EodDate::builder()
+            .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
+            .limit(50)
+            .unwrap()
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn eod_date_over_limit() {
+        assert!(EodDate::builder()
+            .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
+            .limit(9999)
+            .is_err());
+    }
+
+    #[test]
+    fn eod_date_offset() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("eod/2022-01-01")
+            .add_query_params(&[("offset", "2")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = EodDate::builder()
+            .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
+            .offset(2)
+            .build()
+            .unwrap();
         api::ignore(endpoint).query(&client).unwrap();
     }
 }
