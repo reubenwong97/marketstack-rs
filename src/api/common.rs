@@ -1,8 +1,3 @@
-// Licensed under the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>.
-// This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! API types common to many endpoints.
 //!
 //! Usually these are enumerations or other simple wrappers around structures
@@ -29,6 +24,7 @@ impl Default for SortOrder {
     }
 }
 impl SortOrder {
+    /// The string representation of the sort order.
     pub fn as_str(self) -> &'static str {
         match self {
             SortOrder::Ascending => "ASC",
