@@ -1,8 +1,3 @@
-// Licensed under the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>.
-// This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! API types common to many endpoints.
 //!
 //! Usually these are enumerations or other simple wrappers around structures
