@@ -82,6 +82,9 @@ impl<'a> Endpoint for Eod<'a> {
     }
 
     fn endpoint(&self) -> Cow<'static, str> {
+        // TODO: The other endpoints should be refactored such that whether
+        // it is /latest or /[date] can be checked at based on what
+        // options were passed into the EodBuilder.
         "eod".into()
     }
 
