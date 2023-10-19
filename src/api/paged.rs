@@ -1,3 +1,8 @@
+//! Pagination related types and functions.
+//!
+//! Pagination is done simply for Marketstack, but this allows setting
+//! page limits to have safety guarantees provided by the new-type pattern.
+
 use thiserror::Error;
 
 use crate::api::ApiError;
@@ -19,9 +24,11 @@ impl PageLimit {
     }
 }
 
+/// Errors which may occur with pagination.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum PaginationError {
+    /// Pagination exceeds the limit allowed by Marketstack.
     #[error("pagination exceeds limit error")]
     ExceedLimit,
 }

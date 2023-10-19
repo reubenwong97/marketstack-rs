@@ -24,6 +24,7 @@ impl Default for SortOrder {
     }
 }
 impl SortOrder {
+    /// The string representation of the sort order.
     pub fn as_str(self) -> &'static str {
         match self {
             SortOrder::Ascending => "ASC",

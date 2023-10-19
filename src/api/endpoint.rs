@@ -6,6 +6,7 @@ use serde::de::DeserializeOwned;
 
 use crate::api::{query, ApiError, AsyncClient, AsyncQuery, BodyError, Client, Query, QueryParams};
 
+/// A trait for providing the necessary information for a single REST API endpoint.
 pub trait Endpoint {
     /// The HTTP method to use for the endpoint.
     fn method(&self) -> Method;

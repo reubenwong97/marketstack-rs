@@ -1,3 +1,5 @@
+//! Implemented endpoints for eod, eod/latest and eod/[date].
+
 use std::collections::BTreeSet;
 
 use chrono::NaiveDate;
@@ -35,6 +37,7 @@ pub struct Eod<'a> {
 }
 
 impl<'a> Eod<'a> {
+    /// Create a builder for the endpoint.
     pub fn builder() -> EodBuilder<'a> {
         EodBuilder::default()
     }
@@ -65,6 +68,7 @@ impl<'a> EodBuilder<'a> {
         self
     }
 
+    /// Limit the number of results returned.
     pub fn limit(&mut self, limit: u16) -> Result<&mut Self, ApiError<PaginationError>> {
         let new = self;
         new.limit = Some(Some(PageLimit::new(limit)?));
@@ -119,6 +123,7 @@ pub struct EodLatest<'a> {
 }
 
 impl<'a> EodLatest<'a> {
+    /// Create a builder for the endpoint.
     pub fn builder() -> EodLatestBuilder<'a> {
         EodLatestBuilder::default()
     }
@@ -149,6 +154,7 @@ impl<'a> EodLatestBuilder<'a> {
         self
     }
 
+    /// Limit the number of results returned.
     pub fn limit(&mut self, limit: u16) -> Result<&mut Self, ApiError<PaginationError>> {
         let new = self;
         new.limit = Some(Some(PageLimit::new(limit)?));
@@ -203,6 +209,7 @@ pub struct EodDate<'a> {
 }
 
 impl<'a> EodDate<'a> {
+    /// Create a builder for the endpoint.
     pub fn builder() -> EodDateBuilder<'a> {
         EodDateBuilder::default()
     }
@@ -233,6 +240,7 @@ impl<'a> EodDateBuilder<'a> {
         self
     }
 
+    /// Limit the number of results returned.
     pub fn limit(&mut self, limit: u16) -> Result<&mut Self, ApiError<PaginationError>> {
         let new = self;
         new.limit = Some(Some(PageLimit::new(limit)?));
