@@ -12,9 +12,11 @@
 //! # Example
 //!
 //! ```rust,no_run
-//! use serde::Deserialize;
+//! use serde::{Deserialize, Serialize};
 //! use marketstack::Marketstack;
-//! use marketstack::api::{self, Eod, Query};
+//! use marketstack::api::{self, Query};
+//! use marketstack::api::eod;
+//! use marketstack::{PaginationInfo, EodDataItem};
 //!
 //! // The return type of an `EodData`. Note that Marketstack may contain more information, but you can
 //! // define your structure to only fetch what is needed.
@@ -39,7 +41,7 @@
 //! // params, we simply specify them in the endpoint builder.
 //! // Note that there are limits defined, and therefore, limit(5) is fallible and returns
 //! // a Result.
-//! let pageable_endpoint = eod::Eod::builder().symbol("AAPL").limit(5)?.build().unwrap();
+//! let pageable_endpoint = eod::Eod::builder().symbol("AAPL").limit(5).unwrap().build().unwrap();
 //! ```
 
 mod basic;
