@@ -1,5 +1,3 @@
-//! [WARNING] Code is this module is untested due to API plan restrictions.
-
 use chrono::NaiveDate;
 use marketstack::api::common::SortOrder;
 use marketstack::api::eod::EodDate;
@@ -15,7 +13,7 @@ fn test_eod_date() {
     let client = Marketstack::new_insecure("api.marketstack.com", api_key).unwrap();
 
     let endpoint = EodDate::builder()
-        .date(NaiveDate::from_ymd_opt(2022, 4, 23).unwrap())
+        .date(NaiveDate::from_ymd_opt(2023, 9, 29).unwrap())
         .symbol("AAPL")
         .build()
         .unwrap();
@@ -34,7 +32,7 @@ fn test_eod_date_paged() {
     let client = Marketstack::new_insecure("api.marketstack.com", api_key).unwrap();
 
     let endpoint = EodDate::builder()
-        .date(NaiveDate::from_ymd_opt(2022, 4, 23).unwrap())
+        .date(NaiveDate::from_ymd_opt(2023, 9, 29).unwrap())
         .symbol("AAPL")
         .limit(5)
         .unwrap()
@@ -54,7 +52,7 @@ fn test_eod_date_sorting() {
 
     let endpoint = EodDate::builder()
         .symbol("AAPL")
-        .date(NaiveDate::from_ymd_opt(2022, 4, 23).unwrap())
+        .date(NaiveDate::from_ymd_opt(2023, 9, 29).unwrap())
         .sort(SortOrder::Ascending)
         .build()
         .unwrap();
@@ -71,7 +69,7 @@ async fn test_async_eod_date() {
         .unwrap();
 
     let endpoint = EodDate::builder()
-        .date(NaiveDate::from_ymd_opt(2022, 4, 23).unwrap())
+        .date(NaiveDate::from_ymd_opt(2023, 9, 29).unwrap())
         .symbol("AAPL")
         .build()
         .unwrap();
@@ -93,7 +91,7 @@ async fn test_async_eod_date_paged() {
 
     let endpoint = EodDate::builder()
         .symbol("AAPL")
-        .date(NaiveDate::from_ymd_opt(2022, 4, 23).unwrap())
+        .date(NaiveDate::from_ymd_opt(2023, 9, 29).unwrap())
         .limit(5)
         .unwrap()
         .build()
