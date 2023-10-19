@@ -91,8 +91,6 @@ impl<'a> Endpoint for EodLatest<'a> {
 #[cfg(test)]
 mod tests {
 
-    use chrono::NaiveDate;
-
     use crate::api::common::SortOrder;
     use crate::api::eod::EodLatest;
     use crate::api::{self, Query};
