@@ -81,11 +81,31 @@ pub struct SplitsData {
     pub data: Vec<SplitsDataItem>,
 }
 
+/// Rust representation of single data item from Marketstack `dividends` response.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct DividendsDataItem {
+    /// Exact date/time the given data was collected in ISO-8601 format.
+    pub date: NaiveDate,
+    /// Dividend for that symbol on the date.
+    pub dividend: f64,
+    /// Stock ticker symbol of the current data object.
+    pub symbol: String,
+}
+
+/// Rust representation of the JSON response from `dividends` marketstack endpoint.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct DividendsData {
+    /// Corresponds to pagination entry from JSON response from marketstack.
+    pub pagination: PaginationInfo,
+    /// Corresponds to data entry from JSON response from marketstack.
+    pub data: Vec<DividendsDataItem>,
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::NaiveDate;
 
-    use super::{EodData, SplitsData};
+    use crate::{DividendsData, EodData, SplitsData};
 
     #[test]
     fn test_deserialize_eod() {
@@ -175,5 +195,52 @@ mod tests {
             NaiveDate::from_ymd_opt(1987, 6, 16).unwrap()
         );
         assert_eq!(splits_data.data[4].symbol, "AAPL");
+    }
+
+    #[test]
+    fn test_deserialize_dividends() {
+        let json_data = r#"{
+            "pagination": {
+              "limit": 5,
+              "offset": 0,
+              "count": 5,
+              "total": 68
+            },
+            "data": [
+              {
+                "date": "2023-08-11",
+                "dividend": 0.24,
+                "symbol": "AAPL"
+              },
+              {
+                "date": "2023-05-12",
+                "dividend": 0.24,
+                "symbol": "AAPL"
+              },
+              {
+                "date": "2023-02-10",
+                "dividend": 0.23,
+                "symbol": "AAPL"
+              },
+              {
+                "date": "2022-12-23",
+                "dividend": 0.17,
+                "symbol": "AAPL"
+              },
+              {
+                "date": "2022-11-04",
+                "dividend": 0.23,
+                "symbol": "AAPL"
+              }
+            ]
+          }"#;
+
+        let dividends_data: DividendsData = serde_json::from_str(json_data).unwrap();
+        assert_eq!(dividends_data.pagination.limit, 5);
+        assert_eq!(dividends_data.data[0].dividend, 0.24);
+        assert_eq!(
+            dividends_data.data[0].date,
+            NaiveDate::from_ymd_opt(2023, 8, 11).unwrap()
+        );
     }
 }

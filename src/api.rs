@@ -55,6 +55,7 @@ mod raw;
 pub mod endpoint_prelude;
 
 pub mod common;
+pub mod dividends;
 pub mod eod;
 pub mod paged;
 pub mod splits;
