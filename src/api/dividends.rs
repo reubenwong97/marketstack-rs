@@ -1,4 +1,4 @@
-//! Implementation of the `splits` API endpoint.
+//! Implementation of the `dividends` API endpoint.
 
 use std::collections::BTreeSet;
 
@@ -9,11 +9,11 @@ use crate::api::common::SortOrder;
 use crate::api::paged::PaginationError;
 use crate::api::{endpoint_prelude::*, ApiError};
 
-/// Query for `splits`.
+/// Query for `dividends`.
 #[derive(Debug, Builder, Clone)]
 #[builder(setter(strip_option))]
-pub struct Splits<'a> {
-    /// Search for `splits` for a symbol.
+pub struct Dividends<'a> {
+    /// Search for `dividends` for a symbol.
     #[builder(setter(name = "_symbols"), default)]
     symbols: BTreeSet<Cow<'a, str>>,
     /// The sort order for the return results.
@@ -33,14 +33,14 @@ pub struct Splits<'a> {
     offset: Option<u64>,
 }
 
-impl<'a> Splits<'a> {
+impl<'a> Dividends<'a> {
     /// Create a builder for this endpoint.
-    pub fn builder() -> SplitsBuilder<'a> {
-        SplitsBuilder::default()
+    pub fn builder() -> DividendsBuilder<'a> {
+        DividendsBuilder::default()
     }
 }
 
-impl<'a> SplitsBuilder<'a> {
+impl<'a> DividendsBuilder<'a> {
     /// Search the given symbol.
     ///
     /// This provides sane defaults for the user to call symbol()
@@ -73,13 +73,13 @@ impl<'a> SplitsBuilder<'a> {
     }
 }
 
-impl<'a> Endpoint for Splits<'a> {
+impl<'a> Endpoint for Dividends<'a> {
     fn method(&self) -> Method {
         Method::GET
     }
 
     fn endpoint(&self) -> Cow<'static, str> {
-        "splits".into()
+        "dividends".into()
     }
 
     fn parameters(&self) -> QueryParams {
@@ -103,47 +103,50 @@ mod tests {
     use chrono::NaiveDate;
 
     use crate::api::common::SortOrder;
-    use crate::api::splits::Splits;
+    use crate::api::dividends::Dividends;
     use crate::api::{self, Query};
     use crate::test::client::{ExpectedUrl, SingleTestClient};
 
     #[test]
-    fn splits_defaults_are_sufficient() {
-        Splits::builder().build().unwrap();
+    fn dividends_defaults_are_sufficient() {
+        Dividends::builder().build().unwrap();
     }
 
     #[test]
-    fn splits_endpoint() {
-        let endpoint = ExpectedUrl::builder().endpoint("splits").build().unwrap();
+    fn dividends_endpoint() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("dividends")
+            .build()
+            .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = Splits::builder().build().unwrap();
+        let endpoint = Dividends::builder().build().unwrap();
         api::ignore(endpoint).query(&client).unwrap();
     }
 
     #[test]
-    fn splits_symbol() {
+    fn dividends_symbol() {
         let endpoint = ExpectedUrl::builder()
-            .endpoint("splits")
+            .endpoint("dividends")
             .add_query_params(&[("symbols", "AAPL")])
             .build()
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = Splits::builder().symbol("AAPL").build().unwrap();
+        let endpoint = Dividends::builder().symbol("AAPL").build().unwrap();
         api::ignore(endpoint).query(&client).unwrap();
     }
 
     #[test]
-    fn splits_symbols() {
+    fn dividends_symbols() {
         let endpoint = ExpectedUrl::builder()
-            .endpoint("splits")
+            .endpoint("dividends")
             .add_query_params(&[("symbols", "AAPL"), ("symbols", "GOOG")])
             .build()
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = Splits::builder()
+        let endpoint = Dividends::builder()
             .symbol("AAPL")
             .symbols(["AAPL", "GOOG"].iter().copied())
             .build()
@@ -152,15 +155,15 @@ mod tests {
     }
 
     #[test]
-    fn splits_sort() {
+    fn dividends_sort() {
         let endpoint = ExpectedUrl::builder()
-            .endpoint("splits")
+            .endpoint("dividends")
             .add_query_params(&[("sort", "ASC")])
             .build()
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = Splits::builder()
+        let endpoint = Dividends::builder()
             .sort(SortOrder::Ascending)
             .build()
             .unwrap();
@@ -168,15 +171,15 @@ mod tests {
     }
 
     #[test]
-    fn splits_date_from() {
+    fn dividends_date_from() {
         let endpoint = ExpectedUrl::builder()
-            .endpoint("splits")
+            .endpoint("dividends")
             .add_query_params(&[("date_from", "2020-01-01")])
             .build()
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = Splits::builder()
+        let endpoint = Dividends::builder()
             .date_from(NaiveDate::from_ymd_opt(2020, 1, 1).unwrap())
             .build()
             .unwrap();
@@ -184,15 +187,15 @@ mod tests {
     }
 
     #[test]
-    fn splits_date_to() {
+    fn dividends_date_to() {
         let endpoint = ExpectedUrl::builder()
-            .endpoint("splits")
+            .endpoint("dividends")
             .add_query_params(&[("date_to", "2020-01-01")])
             .build()
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = Splits::builder()
+        let endpoint = Dividends::builder()
             .date_to(NaiveDate::from_ymd_opt(2020, 1, 1).unwrap())
             .build()
             .unwrap();
@@ -200,33 +203,33 @@ mod tests {
     }
 
     #[test]
-    fn splits_limit() {
+    fn dividends_limit() {
         let endpoint = ExpectedUrl::builder()
-            .endpoint("splits")
+            .endpoint("dividends")
             .add_query_params(&[("limit", "50")])
             .build()
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = Splits::builder().limit(50).unwrap().build().unwrap();
+        let endpoint = Dividends::builder().limit(50).unwrap().build().unwrap();
         api::ignore(endpoint).query(&client).unwrap();
     }
 
     #[test]
-    fn splits_over_limit() {
-        assert!(Splits::builder().limit(9999).is_err());
+    fn dividends_over_limit() {
+        assert!(Dividends::builder().limit(9999).is_err());
     }
 
     #[test]
-    fn splits_offset() {
+    fn dividends_offset() {
         let endpoint = ExpectedUrl::builder()
-            .endpoint("splits")
+            .endpoint("dividends")
             .add_query_params(&[("offset", "2")])
             .build()
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = Splits::builder().offset(2).build().unwrap();
+        let endpoint = Dividends::builder().offset(2).build().unwrap();
         api::ignore(endpoint).query(&client).unwrap();
     }
 }
