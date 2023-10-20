@@ -101,11 +101,31 @@ pub struct DividendsData {
     pub data: Vec<DividendsDataItem>,
 }
 
+/// Rust representation of single data item from Marketstack `currencies` response.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CurrenciesDataItem {
+    /// 3-letter code of the given currency.
+    pub code: String,
+    /// Name of the given currency.
+    pub name: String,
+    /// Text symbol of the given currency.
+    pub symbol: String,
+}
+
+/// Rust representation of the JSON response from `currencies` marketstack endpoint.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CurrenciesData {
+    /// Corresponds to pagination entry from JSON response from marketstack.
+    pub pagination: PaginationInfo,
+    /// Corresponds to data entry from JSON response from marketstack.
+    pub data: Vec<CurrenciesDataItem>,
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::NaiveDate;
 
-    use crate::{DividendsData, EodData, SplitsData};
+    use crate::{CurrenciesData, DividendsData, EodData, SplitsData};
 
     #[test]
     fn test_deserialize_eod() {
@@ -242,5 +262,40 @@ mod tests {
             dividends_data.data[0].date,
             NaiveDate::from_ymd_opt(2023, 8, 11).unwrap()
         );
+    }
+
+    #[test]
+    fn test_deserialize_currencies() {
+        let json_data = r#"{
+            "pagination": {
+              "limit": 3,
+              "offset": 0,
+              "count": 3,
+              "total": 42
+            },
+            "data": [
+              {
+                "code": "USD",
+                "symbol": "$",
+                "name": "US Dollar"
+              },
+              {
+                "code": "ARS",
+                "symbol": "AR$",
+                "name": "Argentine Peso"
+              },
+              {
+                "code": "EUR",
+                "symbol": "€",
+                "name": "Euro"
+              }
+            ]
+          }"#;
+
+        let currencies_data: CurrenciesData = serde_json::from_str(json_data).unwrap();
+        assert_eq!(currencies_data.pagination.limit, 3);
+        assert_eq!(currencies_data.data[0].code, "USD");
+        assert_eq!(currencies_data.data[0].symbol, "$");
+        assert_eq!(currencies_data.data[0].name, "US Dollar");
     }
 }
