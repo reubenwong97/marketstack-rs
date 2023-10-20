@@ -20,36 +20,36 @@ pub struct PaginationInfo {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EodDataItem {
     /// Exact date/time the given data was collected in ISO-8601 format.
-    date: DateTime<Utc>,
+    pub date: DateTime<Utc>,
     /// Stock ticker symbol of the current data object.
-    symbol: String,
+    pub symbol: String,
     /// Exchange MIC identification associated with the current data object.
-    exchange: String,
+    pub exchange: String,
     /// Split factor used to adjust prices when a company splits, reverse splits or pays a
     /// distribution.
-    split_factor: f64,
+    pub split_factor: f64,
     /// Distribution of earnings to shareholders.
-    dividend: f64,
+    pub dividend: f64,
     /// Raw opening price of the given stock ticker.
-    open: f64,
+    pub open: f64,
     /// Raw high price of the given stock ticker.
-    high: f64,
+    pub high: f64,
     /// Raw low price of the given stock ticker.
-    low: f64,
+    pub low: f64,
     /// Raw closing price of the given stock ticker.
-    close: f64,
+    pub close: f64,
     /// Raw volume of the given stock ticker.
-    volume: f64,
+    pub volume: f64,
     /// Adjusted opening price of the given stock ticker.
-    adj_open: f64,
+    pub adj_open: f64,
     /// Adjusted high price of the given stock ticker.
-    adj_high: f64,
+    pub adj_high: f64,
     /// Adjusted low price of the given stock ticker.
-    adj_low: f64,
+    pub adj_low: f64,
     /// Adjusted closing price of the given stock ticker.
-    adj_close: f64,
+    pub adj_close: f64,
     /// Adjusted volume of the given stock ticker.
-    adj_volume: f64,
+    pub adj_volume: f64,
 }
 
 /// Rust representation of the JSON response from `eod` marketstack endpoint.
@@ -65,11 +65,11 @@ pub struct EodData {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SplitsDataItem {
     /// Exact date/time the given data was collected in ISO-8601 format.
-    date: NaiveDate,
+    pub date: NaiveDate,
     /// Split factor for that symbol on the date.
-    split_factor: f64,
+    pub split_factor: f64,
     /// Stock ticker symbol of the current data object.
-    symbol: String,
+    pub symbol: String,
 }
 
 /// Rust representation of the JSON response from `splits` marketstack endpoint.
