@@ -1,4 +1,4 @@
-//! Implemented endpoints for eod, eod/latest and eod/[date].
+//! Implemented endpoints for `eod`, `eod/latest `and `eod/[date]`.
 
 use std::collections::BTreeSet;
 
@@ -9,7 +9,7 @@ use crate::api::common::SortOrder;
 use crate::api::paged::PaginationError;
 use crate::api::{endpoint_prelude::*, ApiError};
 
-/// Query for eod.
+/// Query for `eod`.
 #[derive(Debug, Builder, Clone)]
 #[builder(setter(strip_option))]
 pub struct Eod<'a> {

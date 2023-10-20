@@ -44,7 +44,6 @@
 //! let pageable_endpoint = eod::Eod::builder().symbol("AAPL").limit(5).unwrap().build().unwrap();
 //! ```
 
-mod basic;
 mod client;
 mod endpoint;
 mod error;
@@ -58,6 +57,7 @@ pub mod endpoint_prelude;
 pub mod common;
 pub mod eod;
 pub mod paged;
+pub mod splits;
 
 pub use self::client::AsyncClient;
 pub use self::client::Client;
@@ -80,7 +80,5 @@ pub use self::query::Query;
 
 pub use self::raw::raw;
 pub use self::raw::Raw;
-
-pub use self::basic::BasicEndpoint;
 
 pub use self::paged::PageLimit;
