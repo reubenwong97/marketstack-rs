@@ -155,6 +155,8 @@ impl Marketstack {
         call().map_err(api::ApiError::client)
     }
 }
+
+/// Builder pattern implementation for Marketstack and AsyncMarketstack.
 pub struct MarketstackBuilder {
     protocol: &'static str,
     host: String,
