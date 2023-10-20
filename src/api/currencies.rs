@@ -35,7 +35,7 @@ impl CurrenciesBuilder {
     }
 }
 
-impl<'a> Endpoint for Currencies {
+impl Endpoint for Currencies {
     fn method(&self) -> Method {
         Method::GET
     }
