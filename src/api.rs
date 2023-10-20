@@ -57,6 +57,7 @@ pub mod endpoint_prelude;
 pub mod common;
 pub mod eod;
 pub mod paged;
+pub mod splits;
 
 pub use self::client::AsyncClient;
 pub use self::client::Client;
