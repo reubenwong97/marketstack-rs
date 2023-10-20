@@ -100,6 +100,9 @@ impl<'a> Endpoint for Splits<'a> {
 #[cfg(test)]
 mod tests {
 
+    use chrono::NaiveDate;
+
+    use crate::api::common::SortOrder;
     use crate::api::splits::Splits;
     use crate::api::{self, Query};
     use crate::test::client::{ExpectedUrl, SingleTestClient};
@@ -115,6 +118,115 @@ mod tests {
         let client = SingleTestClient::new_raw(endpoint, "");
 
         let endpoint = Splits::builder().build().unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn splits_symbol() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("splits")
+            .add_query_params(&[("symbols", "AAPL")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Splits::builder().symbol("AAPL").build().unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn splits_symbols() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("splits")
+            .add_query_params(&[("symbols", "AAPL"), ("symbols", "GOOG")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Splits::builder()
+            .symbol("AAPL")
+            .symbols(["AAPL", "GOOG"].iter().copied())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn splits_sort() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("splits")
+            .add_query_params(&[("sort", "ASC")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Splits::builder()
+            .sort(SortOrder::Ascending)
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn splits_date_from() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("splits")
+            .add_query_params(&[("date_from", "2020-01-01")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Splits::builder()
+            .date_from(NaiveDate::from_ymd_opt(2020, 1, 1).unwrap())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn splits_date_to() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("splits")
+            .add_query_params(&[("date_to", "2020-01-01")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Splits::builder()
+            .date_to(NaiveDate::from_ymd_opt(2020, 1, 1).unwrap())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn splits_limit() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("splits")
+            .add_query_params(&[("limit", "50")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Splits::builder().limit(50).unwrap().build().unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn splits_over_limit() {
+        assert!(Splits::builder().limit(9999).is_err());
+    }
+
+    #[test]
+    fn splits_offset() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("splits")
+            .add_query_params(&[("offset", "2")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Splits::builder().offset(2).build().unwrap();
         api::ignore(endpoint).query(&client).unwrap();
     }
 }
