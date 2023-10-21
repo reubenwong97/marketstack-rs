@@ -121,11 +121,31 @@ pub struct CurrenciesData {
     pub data: Vec<CurrenciesDataItem>,
 }
 
+/// Rust representation of single data item from Marketstack `timezones` response.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TimezonesDataItem {
+    /// Name of the given timezone.
+    pub timezone: String,
+    /// Abbreviation of the given timezone.
+    pub abbr: String,
+    /// Summer time abbreviation of the given timezone.
+    pub abbr_dst: String,
+}
+
+/// Rust representation of the JSON response from `timezones` marketstack endpoint.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TimezonesData {
+    /// Corresponds to pagination entry from JSON response from marketstack.
+    pub pagination: PaginationInfo,
+    /// Corresponds to data entry from JSON response from marketstack.
+    pub data: Vec<TimezonesDataItem>,
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::NaiveDate;
 
-    use crate::{CurrenciesData, DividendsData, EodData, SplitsData};
+    use crate::{CurrenciesData, DividendsData, EodData, SplitsData, TimezonesData};
 
     #[test]
     fn test_deserialize_eod() {
@@ -297,5 +317,39 @@ mod tests {
         assert_eq!(currencies_data.data[0].code, "USD");
         assert_eq!(currencies_data.data[0].symbol, "$");
         assert_eq!(currencies_data.data[0].name, "US Dollar");
+    }
+
+    #[test]
+    fn test_deserialize_timezones() {
+        let json_data = r#"{
+            "pagination": {
+              "limit": 3,
+              "offset": 0,
+              "count": 3,
+              "total": 57
+            },
+            "data": [
+              {
+                "timezone": "America/New_York",
+                "abbr": "EST",
+                "abbr_dst": "EDT"
+              },
+              {
+                "timezone": "America/Argentina/Buenos_Aires",
+                "abbr": "-03",
+                "abbr_dst": "-03"
+              },
+              {
+                "timezone": "Europe/Vienna",
+                "abbr": "CET",
+                "abbr_dst": "CEST"
+              }
+            ]
+          }"#;
+
+        let timezones_data: TimezonesData = serde_json::from_str(json_data).unwrap();
+        assert_eq!(timezones_data.data[0].timezone, "America/New_York");
+        assert_eq!(timezones_data.data[0].abbr, "EST");
+        assert_eq!(timezones_data.data[0].abbr_dst, "EDT");
     }
 }
