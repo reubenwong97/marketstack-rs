@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 use marketstack::api::common::SortOrder;
-use marketstack::api::eod::EodDate;
+use marketstack::api::eod::Eod;
 use marketstack::api::{AsyncQuery, Query};
 use marketstack::{AsyncMarketstack, EodData, Marketstack};
 
@@ -12,7 +12,7 @@ fn test_eod_date() {
     let api_key = setup::setup_key();
     let client = Marketstack::new_insecure("api.marketstack.com", api_key).unwrap();
 
-    let endpoint = EodDate::builder()
+    let endpoint = Eod::builder()
         .date(NaiveDate::from_ymd_opt(2023, 9, 29).unwrap())
         .symbol("AAPL")
         .build()
@@ -31,7 +31,7 @@ fn test_eod_date_paged() {
     let api_key = setup::setup_key();
     let client = Marketstack::new_insecure("api.marketstack.com", api_key).unwrap();
 
-    let endpoint = EodDate::builder()
+    let endpoint = Eod::builder()
         .date(NaiveDate::from_ymd_opt(2023, 9, 29).unwrap())
         .symbol("AAPL")
         .limit(5)
@@ -50,7 +50,7 @@ fn test_eod_date_sorting() {
     let api_key = setup::setup_key();
     let client = Marketstack::new_insecure("api.marketstack.com", api_key).unwrap();
 
-    let endpoint = EodDate::builder()
+    let endpoint = Eod::builder()
         .symbol("AAPL")
         .date(NaiveDate::from_ymd_opt(2023, 9, 29).unwrap())
         .sort(SortOrder::Ascending)
@@ -68,7 +68,7 @@ async fn test_async_eod_date() {
         .await
         .unwrap();
 
-    let endpoint = EodDate::builder()
+    let endpoint = Eod::builder()
         .date(NaiveDate::from_ymd_opt(2023, 9, 29).unwrap())
         .symbol("AAPL")
         .build()
@@ -89,7 +89,7 @@ async fn test_async_eod_date_paged() {
         .await
         .unwrap();
 
-    let endpoint = EodDate::builder()
+    let endpoint = Eod::builder()
         .symbol("AAPL")
         .date(NaiveDate::from_ymd_opt(2023, 9, 29).unwrap())
         .limit(5)

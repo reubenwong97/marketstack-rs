@@ -11,7 +11,7 @@ use crate::api::{endpoint_prelude::*, ApiError};
 
 /// Query for `eod`.
 #[derive(Debug, Builder, Clone)]
-#[builder(setter(strip_option))]
+#[builder(setter(strip_option), build_fn(validate = "Self::validate"))]
 pub struct Eod<'a> {
     /// Search for eod for a symbol.
     #[builder(setter(name = "_symbols"), default)]
@@ -34,6 +34,12 @@ pub struct Eod<'a> {
     /// Pagination offset value for API request.
     #[builder(default)]
     offset: Option<u64>,
+    /// Used when desired endpoint is `eod/latest`
+    #[builder(default)]
+    latest: Option<bool>,
+    /// Used when desired endpoint is `eod/[date]`
+    #[builder(default)]
+    date: Option<NaiveDate>,
 }
 
 impl<'a> Eod<'a> {
@@ -74,6 +80,15 @@ impl<'a> EodBuilder<'a> {
         new.limit = Some(Some(PageLimit::new(limit)?));
         Ok(new)
     }
+
+    /// Check that `Eod` contains valid endpoint combinations.
+    fn validate(&self) -> Result<(), String> {
+        if self.date.is_some() && self.latest.is_some() {
+            Err("Cannot use both `date` and `latest`".into())
+        } else {
+            Ok(())
+        }
+    }
 }
 
 impl<'a> Endpoint for Eod<'a> {
@@ -82,10 +97,14 @@ impl<'a> Endpoint for Eod<'a> {
     }
 
     fn endpoint(&self) -> Cow<'static, str> {
-        // TODO: The other endpoints should be refactored such that whether
-        // it is /latest or /[date] can be checked at based on what
-        // options were passed into the EodBuilder.
-        "eod".into()
+        if self.latest.is_some() {
+            "eod/latest".into()
+        } else if self.date.is_some() {
+            // Panics on invalid date -> irrecoverable and illegal to proceed
+            format!("eod/{}", self.date.unwrap()).into()
+        } else {
+            "eod".into()
+        }
     }
 
     fn parameters(&self) -> QueryParams {
@@ -104,184 +123,13 @@ impl<'a> Endpoint for Eod<'a> {
     }
 }
 
-/// Query for eod/latest.
-#[derive(Debug, Builder, Clone)]
-#[builder(setter(strip_option))]
-pub struct EodLatest<'a> {
-    /// Search for eod for a symbol.
-    #[builder(setter(name = "_symbols"), default)]
-    symbols: BTreeSet<Cow<'a, str>>,
-    /// Exchange to filer symbol by.
-    #[builder(setter(into), default)]
-    exchange: Option<Cow<'a, str>>,
-    /// The sort order for the return results.
-    #[builder(default)]
-    sort: Option<SortOrder>,
-    /// Pagination limit for API request.
-    #[builder(setter(name = "_limit"), default)]
-    limit: Option<PageLimit>,
-    /// Pagination offset value for API request.
-    #[builder(default)]
-    offset: Option<u64>,
-}
-
-impl<'a> EodLatest<'a> {
-    /// Create a builder for the endpoint.
-    pub fn builder() -> EodLatestBuilder<'a> {
-        EodLatestBuilder::default()
-    }
-}
-
-impl<'a> EodLatestBuilder<'a> {
-    /// Search the given symbol.
-    ///
-    /// This provides sane defaults for the user to call symbol()
-    /// on the builder without needing to wrap his symbol in a
-    /// BTreeSet beforehand.
-    pub fn symbol(&mut self, symbol: &'a str) -> &mut Self {
-        self.symbols
-            .get_or_insert_with(BTreeSet::new)
-            .insert(symbol.into());
-        self
-    }
-
-    /// Search the given symbols.
-    pub fn symbols<I, V>(&mut self, iter: I) -> &mut Self
-    where
-        I: Iterator<Item = V>,
-        V: Into<Cow<'a, str>>,
-    {
-        self.symbols
-            .get_or_insert_with(BTreeSet::new)
-            .extend(iter.map(|v| v.into()));
-        self
-    }
-
-    /// Limit the number of results returned.
-    pub fn limit(&mut self, limit: u16) -> Result<&mut Self, ApiError<PaginationError>> {
-        let new = self;
-        new.limit = Some(Some(PageLimit::new(limit)?));
-        Ok(new)
-    }
-}
-
-impl<'a> Endpoint for EodLatest<'a> {
-    fn method(&self) -> Method {
-        Method::GET
-    }
-
-    fn endpoint(&self) -> Cow<'static, str> {
-        "eod/latest".into()
-    }
-
-    fn parameters(&self) -> QueryParams {
-        let mut params = QueryParams::default();
-
-        params
-            .extend(self.symbols.iter().map(|value| ("symbols", value)))
-            .push_opt("exchange", self.exchange.as_ref())
-            .push_opt("sort", self.sort)
-            .push_opt("limit", self.limit.clone())
-            .push_opt("offset", self.offset);
-
-        params
-    }
-}
-
-/// Query for eod/[date].
-#[derive(Debug, Builder, Clone)]
-#[builder(setter(strip_option))]
-pub struct EodDate<'a> {
-    /// Search for eod for a symbol.
-    #[builder(setter(name = "_symbols"), default)]
-    symbols: BTreeSet<Cow<'a, str>>,
-    /// Date to query EOD data for.
-    date: NaiveDate,
-    /// Exchange to filer symbol by.
-    #[builder(setter(into), default)]
-    exchange: Option<Cow<'a, str>>,
-    /// The sort order for the return results.
-    #[builder(default)]
-    sort: Option<SortOrder>,
-    /// Pagination limit for API request.
-    #[builder(setter(name = "_limit"), default)]
-    limit: Option<PageLimit>,
-    /// Pagination offset value for API request.
-    #[builder(default)]
-    offset: Option<u64>,
-}
-
-impl<'a> EodDate<'a> {
-    /// Create a builder for the endpoint.
-    pub fn builder() -> EodDateBuilder<'a> {
-        EodDateBuilder::default()
-    }
-}
-
-impl<'a> EodDateBuilder<'a> {
-    /// Search the given symbol.
-    ///
-    /// This provides sane defaults for the user to call symbol()
-    /// on the builder without needing to wrap his symbol in a
-    /// BTreeSet beforehand.
-    pub fn symbol(&mut self, symbol: &'a str) -> &mut Self {
-        self.symbols
-            .get_or_insert_with(BTreeSet::new)
-            .insert(symbol.into());
-        self
-    }
-
-    /// Search the given symbols.
-    pub fn symbols<I, V>(&mut self, iter: I) -> &mut Self
-    where
-        I: Iterator<Item = V>,
-        V: Into<Cow<'a, str>>,
-    {
-        self.symbols
-            .get_or_insert_with(BTreeSet::new)
-            .extend(iter.map(|v| v.into()));
-        self
-    }
-
-    /// Limit the number of results returned.
-    pub fn limit(&mut self, limit: u16) -> Result<&mut Self, ApiError<PaginationError>> {
-        let new = self;
-        new.limit = Some(Some(PageLimit::new(limit)?));
-        Ok(new)
-    }
-}
-
-impl<'a> Endpoint for EodDate<'a> {
-    fn method(&self) -> Method {
-        Method::GET
-    }
-
-    fn endpoint(&self) -> Cow<'static, str> {
-        // NaiveDate.to_string() would be e.g. 2022-01-01
-        format!("eod/{}", self.date).into()
-    }
-
-    fn parameters(&self) -> QueryParams {
-        let mut params = QueryParams::default();
-
-        params
-            .extend(self.symbols.iter().map(|value| ("symbols", value)))
-            .push_opt("exchange", self.exchange.as_ref())
-            .push_opt("sort", self.sort)
-            .push_opt("limit", self.limit.clone())
-            .push_opt("offset", self.offset);
-
-        params
-    }
-}
-
 #[cfg(test)]
 mod tests {
 
     use chrono::NaiveDate;
 
     use crate::api::common::SortOrder;
-    use crate::api::eod::{Eod, EodDate, EodLatest};
+    use crate::api::eod::Eod;
     use crate::api::{self, Query};
     use crate::test::client::{ExpectedUrl, SingleTestClient};
 
@@ -420,7 +268,7 @@ mod tests {
 
     #[test]
     fn eod_latest_defaults_are_sufficient() {
-        EodLatest::builder().build().unwrap();
+        Eod::builder().latest(true).build().unwrap();
     }
 
     #[test]
@@ -431,7 +279,7 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodLatest::builder().build().unwrap();
+        let endpoint = Eod::builder().latest(true).build().unwrap();
         api::ignore(endpoint).query(&client).unwrap();
     }
 
@@ -444,7 +292,7 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodLatest::builder().symbol("AAPL").build().unwrap();
+        let endpoint = Eod::builder().latest(true).symbol("AAPL").build().unwrap();
         api::ignore(endpoint).query(&client).unwrap();
     }
 
@@ -457,7 +305,8 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodLatest::builder()
+        let endpoint = Eod::builder()
+            .latest(true)
             .symbol("AAPL")
             .symbols(["AAPL", "GOOG"].iter().copied())
             .build()
@@ -474,7 +323,11 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodLatest::builder().exchange("NYSE").build().unwrap();
+        let endpoint = Eod::builder()
+            .latest(true)
+            .exchange("NYSE")
+            .build()
+            .unwrap();
         api::ignore(endpoint).query(&client).unwrap();
     }
 
@@ -487,7 +340,8 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodLatest::builder()
+        let endpoint = Eod::builder()
+            .latest(true)
             .sort(SortOrder::Ascending)
             .build()
             .unwrap();
@@ -503,13 +357,18 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodLatest::builder().limit(50).unwrap().build().unwrap();
+        let endpoint = Eod::builder()
+            .latest(true)
+            .limit(50)
+            .unwrap()
+            .build()
+            .unwrap();
         api::ignore(endpoint).query(&client).unwrap();
     }
 
     #[test]
     fn eod_latest_over_limit() {
-        assert!(EodLatest::builder().limit(9999).is_err());
+        assert!(Eod::builder().latest(true).limit(9999).is_err());
     }
 
     #[test]
@@ -521,7 +380,7 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodLatest::builder().offset(2).build().unwrap();
+        let endpoint = Eod::builder().latest(true).offset(2).build().unwrap();
         api::ignore(endpoint).query(&client).unwrap();
     }
 
@@ -533,7 +392,7 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodDate::builder()
+        let endpoint = Eod::builder()
             .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
             .build()
             .unwrap();
@@ -549,7 +408,7 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodDate::builder()
+        let endpoint = Eod::builder()
             .symbol("AAPL")
             .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
             .build()
@@ -566,7 +425,7 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodDate::builder()
+        let endpoint = Eod::builder()
             .symbol("AAPL")
             .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
             .symbols(["AAPL", "GOOG"].iter().copied())
@@ -584,7 +443,7 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodDate::builder()
+        let endpoint = Eod::builder()
             .exchange("NYSE")
             .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
             .build()
@@ -601,7 +460,7 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodDate::builder()
+        let endpoint = Eod::builder()
             .sort(SortOrder::Ascending)
             .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
             .build()
@@ -618,7 +477,7 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodDate::builder()
+        let endpoint = Eod::builder()
             .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
             .limit(50)
             .unwrap()
@@ -629,7 +488,7 @@ mod tests {
 
     #[test]
     fn eod_date_over_limit() {
-        assert!(EodDate::builder()
+        assert!(Eod::builder()
             .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
             .limit(9999)
             .is_err());
@@ -644,11 +503,26 @@ mod tests {
             .unwrap();
         let client = SingleTestClient::new_raw(endpoint, "");
 
-        let endpoint = EodDate::builder()
+        let endpoint = Eod::builder()
             .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
             .offset(2)
             .build()
             .unwrap();
         api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn eod_date_latest_mutually_exclusive() {
+        let endpoint = Eod::builder()
+            .latest(true)
+            .date(NaiveDate::from_ymd_opt(2022, 1, 1).unwrap())
+            .build();
+
+        assert!(endpoint.is_err());
+        assert!(endpoint
+            .err()
+            .unwrap()
+            .to_string()
+            .contains("Cannot use both"));
     }
 }

@@ -6,7 +6,7 @@
 //! Rust idioms.
 //!
 //! All endpoints use the builder pattern and have their members as private so that there are no
-//! API implications of adding new members for additional query parameters in future GitLab
+//! API implications of adding new members for additional query parameters in future Marketstack
 //! releases.
 //!
 //! # Example

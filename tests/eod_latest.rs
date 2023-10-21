@@ -11,7 +11,11 @@ fn test_eod_latest() {
     let api_key = setup::setup_key();
     let client = Marketstack::new_insecure("api.marketstack.com", api_key).unwrap();
 
-    let endpoint = eod::EodLatest::builder().symbol("AAPL").build().unwrap();
+    let endpoint = eod::Eod::builder()
+        .latest(true)
+        .symbol("AAPL")
+        .build()
+        .unwrap();
     let eod_result: EodData = endpoint.query(&client).unwrap();
 
     assert_eq!(eod_result.pagination.limit, 100);
@@ -26,8 +30,9 @@ fn test_eod_latest_paged() {
     let api_key = setup::setup_key();
     let client = Marketstack::new_insecure("api.marketstack.com", api_key).unwrap();
 
-    let endpoint = eod::EodLatest::builder()
+    let endpoint = eod::Eod::builder()
         .symbol("AAPL")
+        .latest(true)
         .limit(5)
         .unwrap()
         .build()
@@ -44,8 +49,9 @@ fn test_eod_latest_sorting() {
     let api_key = setup::setup_key();
     let client = Marketstack::new_insecure("api.marketstack.com", api_key).unwrap();
 
-    let endpoint = eod::EodLatest::builder()
+    let endpoint = eod::Eod::builder()
         .symbol("AAPL")
+        .latest(true)
         .sort(SortOrder::Ascending)
         .build()
         .unwrap();
@@ -61,7 +67,11 @@ async fn test_async_eod_latest() {
         .await
         .unwrap();
 
-    let endpoint = eod::EodLatest::builder().symbol("AAPL").build().unwrap();
+    let endpoint = eod::Eod::builder()
+        .latest(true)
+        .symbol("AAPL")
+        .build()
+        .unwrap();
     let eod_result: EodData = endpoint.query_async(&client).await.unwrap();
 
     assert_eq!(eod_result.pagination.limit, 100);
@@ -78,8 +88,9 @@ async fn test_async_eod_paged() {
         .await
         .unwrap();
 
-    let endpoint = eod::EodLatest::builder()
+    let endpoint = eod::Eod::builder()
         .symbol("AAPL")
+        .latest(true)
         .limit(5)
         .unwrap()
         .build()
