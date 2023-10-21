@@ -60,6 +60,7 @@ pub mod dividends;
 pub mod eod;
 pub mod paged;
 pub mod splits;
+pub mod timezones;
 
 pub use self::client::AsyncClient;
 pub use self::client::Client;
