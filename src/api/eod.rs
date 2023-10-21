@@ -84,7 +84,7 @@ impl<'a> EodBuilder<'a> {
     /// Check that `Eod` contains valid endpoint combinations.
     fn validate(&self) -> Result<(), String> {
         if self.date.is_some() && self.latest.is_some() {
-            return Err("Cannot use both `date` and `latest`".into());
+            Err("Cannot use both `date` and `latest`".into())
         } else {
             Ok(())
         }
