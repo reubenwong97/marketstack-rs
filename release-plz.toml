@@ -11,7 +11,7 @@ dependencies_update = true
 # create tags for the releases
 git_tag_enable = true
 
-# disable GitHub releases
+# disable GitHub releases -> `cargo-dist` will handle this for us
 git_release_enable = false
 
 # labels for the release PR
