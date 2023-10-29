@@ -141,11 +141,86 @@ pub struct TimezonesData {
     pub data: Vec<TimezonesDataItem>,
 }
 
+/// Rust represenation of a stock exchange.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct StockExchange {
+    /// Name of the stock exchange associated with the given stock ticker.
+    pub name: String,
+    /// Name of the stock exchange associated with the given stock ticker.
+    pub acronym: String,
+    /// MIC identification of the stock exchange associated with the given stock ticker.
+    pub mic: String,
+    /// Country of the stock exchange associated with the given stock ticker.
+    pub country: String,
+    /// 3-letter country code of the stock exchange associated with the given stock ticker.
+    pub country_code: String,
+    /// City of the stock exchange associated with the given stock ticker.
+    pub city: String,
+    /// Website URL of the stock exchange associated with the given stock ticker.
+    pub website: String,
+}
+
+/// Rust representation of a single data item from Marketstack `tickers` response.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TickersDataItem {
+    /// Name of the given stock ticker.
+    pub name: String,
+    /// Symbol of the given stock ticker.
+    pub symbol: String,
+    /// Whether intraday data is available for the stock ticker.
+    pub has_intraday: bool,
+    /// Whether eod data is available for the stock ticker.
+    pub has_eod: bool,
+    /// Country ticker is traded in - if available, else `None`.
+    pub country: Option<String>,
+    /// Stock exchange the ticker is traded in.
+    pub stock_exchange: StockExchange,
+}
+
+/// Rust representation of a single data item from Marketstack `tickers/[symbol]/eod` response.
+/// Implementation seems slightly repetitive, but return types from Marketstack are slightly
+/// inconsistent for this endpoint.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TickerEodDataInner {
+    /// Name of the given stock ticker.
+    pub name: String,
+    /// Symbol of the given stock ticker.
+    pub symbol: String,
+    /// Whether intraday data is available for the stock ticker.
+    pub has_intraday: bool,
+    /// Whether eod data is available for the stock ticker.
+    pub has_eod: bool,
+    /// Country ticker is traded in - if available, else `None`.
+    pub country: Option<String>,
+    /// Collection of eod data for the ticker.
+    pub eod: Vec<EodDataItem>,
+}
+
+/// Rust representation of the JSON response from `tickers` marketstack endpoint.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TickersData {
+    /// Corresponds to pagination entry from JSON response from marketstack.
+    pub pagination: PaginationInfo,
+    /// Corresponds to data entry from JSON response from marketstack.
+    pub data: Vec<TickersDataItem>,
+}
+
+/// Rust representation of the JSON response from `tickers/[symbol]/eod` marketstack endpoint.
+/// Implementation seems slightly repetitive, but return types from Marketstack are slightly
+/// inconsistent for this endpoint.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TickersEodData {
+    /// Corresponds to pagination entry from JSON response from marketstack.
+    pub pagination: PaginationInfo,
+    /// Corresponds to data entry from JSON response from marketstack.
+    pub data: TickerEodDataInner,
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::NaiveDate;
 
-    use crate::{CurrenciesData, DividendsData, EodData, SplitsData, TimezonesData};
+    use crate::{CurrenciesData, DividendsData, EodData, SplitsData, TickersData, TimezonesData};
 
     #[test]
     fn test_deserialize_eod() {
@@ -351,5 +426,87 @@ mod tests {
         assert_eq!(timezones_data.data[0].timezone, "America/New_York");
         assert_eq!(timezones_data.data[0].abbr, "EST");
         assert_eq!(timezones_data.data[0].abbr_dst, "EDT");
+    }
+
+    #[test]
+    fn test_deserialize_tickers() {
+        let json_data = r#"{
+          "pagination": {
+            "limit": 3,
+            "offset": 0,
+            "count": 3,
+            "total": 287233
+          },
+          "data": [
+            {
+              "name": "Microsoft Corporation",
+              "symbol": "MSFT",
+              "has_intraday": false,
+              "has_eod": true,
+              "country": null,
+              "stock_exchange": {
+                "name": "NASDAQ Stock Exchange",
+                "acronym": "NASDAQ",
+                "mic": "XNAS",
+                "country": "USA",
+                "country_code": "US",
+                "city": "New York",
+                "website": "www.nasdaq.com"
+              }
+            },
+            {
+              "name": "Apple Inc",
+              "symbol": "AAPL",
+              "has_intraday": false,
+              "has_eod": true,
+              "country": null,
+              "stock_exchange": {
+                "name": "NASDAQ Stock Exchange",
+                "acronym": "NASDAQ",
+                "mic": "XNAS",
+                "country": "USA",
+                "country_code": "US",
+                "city": "New York",
+                "website": "www.nasdaq.com"
+              }
+            },
+            {
+              "name": "Amazon.com Inc",
+              "symbol": "AMZN",
+              "has_intraday": false,
+              "has_eod": true,
+              "country": null,
+              "stock_exchange": {
+                "name": "NASDAQ Stock Exchange",
+                "acronym": "NASDAQ",
+                "mic": "XNAS",
+                "country": "USA",
+                "country_code": "US",
+                "city": "New York",
+                "website": "www.nasdaq.com"
+              }
+            }
+          ]
+        }"#;
+
+        let tickers_data: TickersData = serde_json::from_str(json_data).unwrap();
+        assert_eq!(tickers_data.data[0].name, "Microsoft Corporation");
+        assert_eq!(tickers_data.data[0].symbol, "MSFT");
+        assert!(!tickers_data.data[0].has_intraday);
+        assert!(tickers_data.data[0].has_eod);
+        assert_eq!(tickers_data.data[0].country, None);
+        assert_eq!(
+            tickers_data.data[0].stock_exchange.name,
+            "NASDAQ Stock Exchange"
+        );
+        assert_eq!(tickers_data.data[0].stock_exchange.acronym, "NASDAQ");
+        assert_eq!(tickers_data.data[0].stock_exchange.mic, "XNAS");
+        assert_eq!(tickers_data.data[0].stock_exchange.country, "USA");
+        assert_eq!(tickers_data.data[0].stock_exchange.country_code, "US");
+        assert_eq!(tickers_data.data[0].stock_exchange.city, "New York");
+        assert_eq!(
+            tickers_data.data[0].stock_exchange.website,
+            "www.nasdaq.com"
+        );
     }
 }
