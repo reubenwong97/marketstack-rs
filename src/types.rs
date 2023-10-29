@@ -141,6 +141,35 @@ pub struct TimezonesData {
     pub data: Vec<TimezonesDataItem>,
 }
 
+/// Rust represenation of a stock exchange.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct StockExchange {
+    pub name: String,
+    pub acronym: String,
+    pub mic: String,
+    pub country: String,
+    pub country_code: String,
+    pub city: String,
+    pub website: String,
+}
+
+/// Rust representation of a single data item from Marketstack `tickers` response.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TickersDataItem {
+    pub name: String,
+    pub symbol: String,
+    pub has_intraday: bool,
+    pub has_eod: bool,
+    pub country: Option<String>,
+    pub stock_exchange: StockExchange,
+}
+
+/// Rust representation of the JSON response from `tickers` marketstack endpoint.
+pub struct TickersData {
+    pub pagination: PaginationInfo,
+    pub data: Vec<TickersDataItem>,
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::NaiveDate;
