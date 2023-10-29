@@ -144,29 +144,44 @@ pub struct TimezonesData {
 /// Rust represenation of a stock exchange.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StockExchange {
+    /// Name of the stock exchange associated with the given stock ticker.
     pub name: String,
+    /// Name of the stock exchange associated with the given stock ticker.
     pub acronym: String,
+    /// MIC identification of the stock exchange associated with the given stock ticker.
     pub mic: String,
+    /// Country of the stock exchange associated with the given stock ticker.
     pub country: String,
+    /// 3-letter country code of the stock exchange associated with the given stock ticker.
     pub country_code: String,
+    /// City of the stock exchange associated with the given stock ticker.
     pub city: String,
+    /// Website URL of the stock exchange associated with the given stock ticker.
     pub website: String,
 }
 
 /// Rust representation of a single data item from Marketstack `tickers` response.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TickersDataItem {
+    /// Name of the given stock ticker.
     pub name: String,
+    /// Symbol of the given stock ticker.
     pub symbol: String,
+    /// Whether intraday data is available for the stock ticker.
     pub has_intraday: bool,
+    /// Whether eod data is available for the stock ticker.
     pub has_eod: bool,
+    /// Country ticker is traded in - if available, else `None`.
     pub country: Option<String>,
+    /// Stock exchange the ticker is traded in.
     pub stock_exchange: StockExchange,
 }
 
 /// Rust representation of the JSON response from `tickers` marketstack endpoint.
 pub struct TickersData {
+    /// Corresponds to pagination entry from JSON response from marketstack.
     pub pagination: PaginationInfo,
+    /// Corresponds to data entry from JSON response from marketstack.
     pub data: Vec<TickersDataItem>,
 }
 
