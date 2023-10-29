@@ -4,6 +4,7 @@ use std::borrow::Cow;
 
 use derive_builder::Builder;
 
+use crate::api::dividends::Dividends;
 use crate::api::eod::Eod;
 use crate::api::paged::PaginationError;
 use crate::api::splits::Splits;
@@ -34,6 +35,9 @@ pub struct Tickers<'a> {
     /// `Splits` struct being built, and held by the `Tickers` struct.
     #[builder(setter(into), default)]
     splits: Option<Splits<'a>>,
+    /// `Dividends` struct being built, and held by the `Tickers` struct.
+    #[builder(setter(into), default)]
+    dividends: Option<Dividends<'a>>,
 }
 
 impl<'a> Tickers<'a> {
@@ -57,9 +61,11 @@ impl<'a> Endpoint for Tickers<'a> {
             if let Some(eod) = &self.eod {
                 endpoint.push_str(&format!("/{}", eod.endpoint().as_ref()));
             }
-
             if let Some(splits) = &self.splits {
                 endpoint.push_str(&format!("/{}", splits.endpoint().as_ref()));
+            }
+            if let Some(dividends) = &self.dividends {
+                endpoint.push_str(&format!("/{}", dividends.endpoint().as_ref()));
             }
         }
 
@@ -77,6 +83,9 @@ impl<'a> Endpoint for Tickers<'a> {
         }
         if let Some(splits) = &self.splits {
             params = splits.parameters().clone();
+        }
+        if let Some(dividends) = &self.dividends {
+            params = dividends.parameters().clone();
         }
 
         // Push params from the `tickers` endpoint.
@@ -100,8 +109,14 @@ impl<'a> TickersBuilder<'a> {
 
     //// Check that `Tickers` contains valid endpoint combinations.
     fn validate(&self) -> Result<(), String> {
-        if self.eod.is_some() && self.splits.is_some() {
-            Err("Cannot use both `eod` and `splits`".into())
+        let active_fields = [
+            self.eod.is_some(),
+            self.splits.is_some(),
+            self.dividends.is_some(),
+        ];
+        let count = active_fields.iter().filter(|x| **x).count();
+        if count > 1 {
+            Err("Invalid combinations of `eod`, `splits` or `dividends`".into())
         } else {
             Ok(())
         }
@@ -114,6 +129,7 @@ mod tests {
     use chrono::NaiveDate;
 
     use crate::api::common::SortOrder;
+    use crate::api::dividends::Dividends;
     use crate::api::eod::Eod;
     use crate::api::splits::Splits;
     use crate::api::tickers::Tickers;
@@ -231,15 +247,28 @@ mod tests {
     }
 
     #[test]
+    fn tickers_dividends() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("tickers/AAPL/dividends")
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Tickers::builder()
+            .ticker("AAPL")
+            .dividends(Dividends::builder().build().unwrap())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
     fn tickers_validator() {
         let endpoint = Tickers::builder()
             .eod(Eod::builder().build().unwrap())
             .splits(Splits::builder().build().unwrap())
             .build();
         assert!(endpoint.is_err());
-        assert_eq!(
-            endpoint.err().unwrap().to_string(),
-            "Cannot use both `eod` and `splits`"
-        );
+        assert!(endpoint.err().unwrap().to_string().contains("Invalid"));
     }
 }
