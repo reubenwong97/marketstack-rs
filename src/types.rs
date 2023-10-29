@@ -218,9 +218,11 @@ pub struct TickersEodData {
 
 #[cfg(test)]
 mod tests {
-    use chrono::NaiveDate;
+    use chrono::{DateTime, Datelike, NaiveDate};
 
-    use crate::{CurrenciesData, DividendsData, EodData, SplitsData, TickersData, TimezonesData};
+    use crate::{
+        CurrenciesData, DividendsData, EodData, EodDataItem, SplitsData, TickersData, TimezonesData,
+    };
 
     #[test]
     fn test_deserialize_eod() {
@@ -508,5 +510,55 @@ mod tests {
             tickers_data.data[0].stock_exchange.website,
             "www.nasdaq.com"
         );
+    }
+
+    #[test]
+    fn test_deserialize_tickers_eod_latest() {
+        let json_data = r#"{
+        "open": 166.91,
+        "high": 168.96,
+        "low": 166.83,
+        "close": 168.22,
+        "volume": 58468600,
+        "adj_high": 168.96,
+        "adj_low": 166.83,
+        "adj_close": 168.22,
+        "adj_open": 166.91,
+        "adj_volume": 58499129,
+        "split_factor": 1,
+        "dividend": 0,
+        "symbol": "AAPL",
+        "exchange": "XNAS",
+        "date": "2023-10-27T00:00:00+0000"
+      }"#;
+
+        let tickers_eod_data: EodDataItem = serde_json::from_str(json_data).unwrap();
+        assert_eq!(tickers_eod_data.open, 166.91);
+        assert_eq!(tickers_eod_data.symbol, "AAPL");
+    }
+
+    #[test]
+    fn test_deserialize_tickers_eod_date() {
+        let json_data = r#"{
+            "open": 166.91,
+            "high": 168.96,
+            "low": 166.83,
+            "close": 168.22,
+            "volume": 58468600,
+            "adj_high": 168.96,
+            "adj_low": 166.83,
+            "adj_close": 168.22,
+            "adj_open": 166.91,
+            "adj_volume": 58499129,
+            "split_factor": 1,
+            "dividend": 0,
+            "symbol": "AAPL",
+            "exchange": "XNAS",
+            "date": "2023-10-27T00:00:00+0000"
+          }"#;
+
+        let tickers_eod_data: EodDataItem = serde_json::from_str(json_data).unwrap();
+        assert_eq!(tickers_eod_data.open, 166.91);
+        assert_eq!(tickers_eod_data.date.day(), 27);
     }
 }
