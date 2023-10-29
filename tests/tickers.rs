@@ -1,7 +1,8 @@
 use chrono::NaiveDate;
 use marketstack::api::common::SortOrder;
+use marketstack::api::splits::Splits;
 use marketstack::api::{eod, tickers, Query};
-use marketstack::{EodDataItem, Marketstack, TickersData, TickersEodData};
+use marketstack::{EodDataItem, Marketstack, SplitsData, TickersData, TickersEodData};
 
 mod setup;
 
@@ -80,4 +81,21 @@ fn test_tickers_eod_date() {
     let tickers_eod_date_result: EodDataItem = endpoint.query(&client).unwrap();
 
     assert_eq!(tickers_eod_date_result.symbol, "AAPL");
+}
+
+#[test]
+#[ignore]
+fn test_tickers_splits() {
+    let api_key = setup::setup_key();
+    let client = Marketstack::new_insecure("api.marketstack.com", api_key).unwrap();
+
+    let endpoint = tickers::Tickers::builder()
+        .ticker("AAPL")
+        .splits(Splits::builder().build().unwrap())
+        .build()
+        .unwrap();
+
+    let tickers_splits_result: SplitsData = endpoint.query(&client).unwrap();
+
+    assert_eq!(tickers_splits_result.data[0].symbol, "AAPL")
 }
