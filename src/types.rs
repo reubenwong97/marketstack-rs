@@ -177,6 +177,25 @@ pub struct TickersDataItem {
     pub stock_exchange: StockExchange,
 }
 
+/// Rust representation of a single data item from Marketstack `tickers/[symbol]/eod` response.
+/// Implementation seems slightly repetitive, but return types from Marketstack are slightly
+/// inconsistent for this endpoint.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TickerEodDataInner {
+    /// Name of the given stock ticker.
+    pub name: String,
+    /// Symbol of the given stock ticker.
+    pub symbol: String,
+    /// Whether intraday data is available for the stock ticker.
+    pub has_intraday: bool,
+    /// Whether eod data is available for the stock ticker.
+    pub has_eod: bool,
+    /// Country ticker is traded in - if available, else `None`.
+    pub country: Option<String>,
+    /// Collection of eod data for the ticker.
+    pub eod: Vec<EodDataItem>,
+}
+
 /// Rust representation of the JSON response from `tickers` marketstack endpoint.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TickersData {
@@ -184,6 +203,17 @@ pub struct TickersData {
     pub pagination: PaginationInfo,
     /// Corresponds to data entry from JSON response from marketstack.
     pub data: Vec<TickersDataItem>,
+}
+
+/// Rust representation of the JSON response from `tickers/[symbol]/eod` marketstack endpoint.
+/// Implementation seems slightly repetitive, but return types from Marketstack are slightly
+/// inconsistent for this endpoint.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TickersEodData {
+    /// Corresponds to pagination entry from JSON response from marketstack.
+    pub pagination: PaginationInfo,
+    /// Corresponds to data entry from JSON response from marketstack.
+    pub data: TickerEodDataInner,
 }
 
 #[cfg(test)]
