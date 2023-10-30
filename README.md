@@ -8,6 +8,4 @@
 [![Builds](https://img.shields.io/github/actions/workflow/status/reubenwong97/marketstack-rs/general.yml
 )](https://github.com/reubenwong97/marketstack-rs)
 
----
-
 Rust bindings for Marketstack REST API
