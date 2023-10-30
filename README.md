@@ -1,5 +1,14 @@
 # marketstack-rs
 
+<div align="center>
+
+<a href="https://crates.io/crates/marketstack">![Crates.io](https://img.shields.io/crates/v/marketstack)</a>
+<a href="https://docs.rs/marketstack">![Documentation](https://img.shields.io/docsrs/marketstack/latest)</a>
+<a href="https://codecov.io/gh/reubenwong97/marketstack-rs">![Codecov](https://codecov.io/gh/reubenwong97/marketstack-rs/graph/badge.svg?token=2RHYDZWTCL)</a>
+<a href="https://github.com/reubenwong97/marketstack-rs">![Builds](https://img.shields.io/github/actions/workflow/status/reubenwong97/marketstack-rs/general.yml)</a>
+
+</div>
+
 [![Crates.io](https://img.shields.io/crates/v/marketstack
 )](https://crates.io/crates/marketstack)
 [![Documentation](https://img.shields.io/docsrs/marketstack/latest
