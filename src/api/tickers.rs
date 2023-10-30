@@ -4,13 +4,15 @@ use std::borrow::Cow;
 
 use derive_builder::Builder;
 
+use crate::api::dividends::Dividends;
 use crate::api::eod::Eod;
 use crate::api::paged::PaginationError;
+use crate::api::splits::Splits;
 use crate::api::{endpoint_prelude::*, ApiError};
 
 /// Base for `tickers`.
 #[derive(Debug, Builder, Clone)]
-#[builder(setter(strip_option))]
+#[builder(setter(strip_option), build_fn(validate = "Self::validate"))]
 pub struct Tickers<'a> {
     /// Ticker symbol.
     #[builder(setter(into), default)]
@@ -30,6 +32,12 @@ pub struct Tickers<'a> {
     /// `Eod` struct being built, and held by the `Tickers` struct.
     #[builder(setter(into), default)]
     eod: Option<Eod<'a>>,
+    /// `Splits` struct being built, and held by the `Tickers` struct.
+    #[builder(setter(into), default)]
+    splits: Option<Splits<'a>>,
+    /// `Dividends` struct being built, and held by the `Tickers` struct.
+    #[builder(setter(into), default)]
+    dividends: Option<Dividends<'a>>,
 }
 
 impl<'a> Tickers<'a> {
@@ -49,8 +57,15 @@ impl<'a> Endpoint for Tickers<'a> {
         if let Some(ticker) = &self.ticker {
             endpoint.push_str(&format!("/{}", ticker));
 
+            // NOTE: validator will ensure only one can be active.
             if let Some(eod) = &self.eod {
                 endpoint.push_str(&format!("/{}", eod.endpoint().as_ref()));
+            }
+            if let Some(splits) = &self.splits {
+                endpoint.push_str(&format!("/{}", splits.endpoint().as_ref()));
+            }
+            if let Some(dividends) = &self.dividends {
+                endpoint.push_str(&format!("/{}", dividends.endpoint().as_ref()));
             }
         }
 
@@ -65,6 +80,12 @@ impl<'a> Endpoint for Tickers<'a> {
         // endpoint query to Marketstack.
         if let Some(eod) = &self.eod {
             params = eod.parameters().clone();
+        }
+        if let Some(splits) = &self.splits {
+            params = splits.parameters().clone();
+        }
+        if let Some(dividends) = &self.dividends {
+            params = dividends.parameters().clone();
         }
 
         // Push params from the `tickers` endpoint.
@@ -85,6 +106,21 @@ impl<'a> TickersBuilder<'a> {
         new.limit = Some(Some(PageLimit::new(limit)?));
         Ok(new)
     }
+
+    //// Check that `Tickers` contains valid endpoint combinations.
+    fn validate(&self) -> Result<(), String> {
+        let active_fields = [
+            self.eod.is_some(),
+            self.splits.is_some(),
+            self.dividends.is_some(),
+        ];
+        let count = active_fields.iter().filter(|x| **x).count();
+        if count > 1 {
+            Err("Invalid combinations of `eod`, `splits` or `dividends`".into())
+        } else {
+            Ok(())
+        }
+    }
 }
 
 #[cfg(test)]
@@ -93,7 +129,9 @@ mod tests {
     use chrono::NaiveDate;
 
     use crate::api::common::SortOrder;
+    use crate::api::dividends::Dividends;
     use crate::api::eod::Eod;
+    use crate::api::splits::Splits;
     use crate::api::tickers::Tickers;
     use crate::api::{self, Query};
     use crate::test::client::{ExpectedUrl, SingleTestClient};
@@ -183,5 +221,54 @@ mod tests {
             .build()
             .unwrap();
         api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn tickers_splits() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("tickers/AAPL/splits")
+            .add_query_params(&[("date_from", "2023-09-27"), ("date_to", "2023-09-30")])
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Tickers::builder()
+            .ticker("AAPL")
+            .splits(
+                Splits::builder()
+                    .date_from(NaiveDate::from_ymd_opt(2023, 9, 27).unwrap())
+                    .date_to(NaiveDate::from_ymd_opt(2023, 9, 30).unwrap())
+                    .build()
+                    .unwrap(),
+            )
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn tickers_dividends() {
+        let endpoint = ExpectedUrl::builder()
+            .endpoint("tickers/AAPL/dividends")
+            .build()
+            .unwrap();
+        let client = SingleTestClient::new_raw(endpoint, "");
+
+        let endpoint = Tickers::builder()
+            .ticker("AAPL")
+            .dividends(Dividends::builder().build().unwrap())
+            .build()
+            .unwrap();
+        api::ignore(endpoint).query(&client).unwrap();
+    }
+
+    #[test]
+    fn tickers_validator() {
+        let endpoint = Tickers::builder()
+            .eod(Eod::builder().build().unwrap())
+            .splits(Splits::builder().build().unwrap())
+            .build();
+        assert!(endpoint.is_err());
+        assert!(endpoint.err().unwrap().to_string().contains("Invalid"));
     }
 }

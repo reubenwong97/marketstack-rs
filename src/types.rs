@@ -218,7 +218,7 @@ pub struct TickersEodData {
 
 #[cfg(test)]
 mod tests {
-    use chrono::{DateTime, Datelike, NaiveDate};
+    use chrono::{Datelike, NaiveDate};
 
     use crate::{
         CurrenciesData, DividendsData, EodData, EodDataItem, SplitsData, TickersData, TimezonesData,
