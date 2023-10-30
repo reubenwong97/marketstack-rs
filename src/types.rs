@@ -216,12 +216,34 @@ pub struct TickersEodData {
     pub data: TickerEodDataInner,
 }
 
+/// Rust representation of a single data item from Marketstack `exchanges` endpoint.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ExchangesDataItem {
+    /// Flattened out fields from `StockExchange` into `ExchangesDataItem`.
+    #[serde(flatten)]
+    pub stock_exchange: StockExchange,
+    /// Timezone of the stock exchange.
+    pub timezone: TimezonesDataItem,
+    /// Currency of the stock exchange.
+    pub currency: CurrenciesDataItem,
+}
+
+/// Rust representation of the JSON response from `exchanges` marketstack endpoint.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ExchangesData {
+    /// Corresponds to pagination entry from JSON response from marketstack.
+    pub pagination: PaginationInfo,
+    /// Corresponds to data entry from JSON response from marketstack.
+    pub data: Vec<ExchangesDataItem>,
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::{Datelike, NaiveDate};
 
     use crate::{
-        CurrenciesData, DividendsData, EodData, EodDataItem, SplitsData, TickersData, TimezonesData,
+        CurrenciesData, DividendsData, EodData, EodDataItem, ExchangesData, SplitsData,
+        TickersData, TimezonesData,
     };
 
     #[test]
@@ -560,5 +582,79 @@ mod tests {
         let tickers_eod_data: EodDataItem = serde_json::from_str(json_data).unwrap();
         assert_eq!(tickers_eod_data.open, 166.91);
         assert_eq!(tickers_eod_data.date.day(), 27);
+    }
+
+    #[test]
+    fn test_deserialize_exchanges() {
+        let json_data = r#"{
+            "pagination": {
+              "limit": 2,
+              "offset": 0,
+              "count": 2,
+              "total": 69
+            },
+            "data": [
+              {
+                "name": "NASDAQ Stock Exchange",
+                "acronym": "NASDAQ",
+                "mic": "XNAS",
+                "country": "USA",
+                "country_code": "US",
+                "city": "New York",
+                "website": "www.nasdaq.com",
+                "timezone": {
+                  "timezone": "America/New_York",
+                  "abbr": "EST",
+                  "abbr_dst": "EDT"
+                },
+                "currency": {
+                  "code": "USD",
+                  "symbol": "$",
+                  "name": "US Dollar"
+                }
+              },
+              {
+                "name": "New York Stock Exchange",
+                "acronym": "NYSE",
+                "mic": "XNYS",
+                "country": "USA",
+                "country_code": "US",
+                "city": "New York",
+                "website": "www.nyse.com",
+                "timezone": {
+                  "timezone": "America/New_York",
+                  "abbr": "EST",
+                  "abbr_dst": "EDT"
+                },
+                "currency": {
+                  "code": "USD",
+                  "symbol": "$",
+                  "name": "US Dollar"
+                }
+              }
+            ]
+          }"#;
+
+        let exchanges_data: ExchangesData = serde_json::from_str(json_data).unwrap();
+        assert_eq!(exchanges_data.pagination.limit, 2);
+        assert_eq!(
+            exchanges_data.data[0].stock_exchange.name,
+            "NASDAQ Stock Exchange"
+        );
+        assert_eq!(exchanges_data.data[0].stock_exchange.acronym, "NASDAQ");
+        assert_eq!(exchanges_data.data[0].stock_exchange.mic, "XNAS");
+        assert_eq!(exchanges_data.data[0].stock_exchange.country, "USA");
+        assert_eq!(exchanges_data.data[0].stock_exchange.country_code, "US");
+        assert_eq!(exchanges_data.data[0].stock_exchange.city, "New York");
+        assert_eq!(
+            exchanges_data.data[0].stock_exchange.website,
+            "www.nasdaq.com"
+        );
+        assert_eq!(exchanges_data.data[0].timezone.timezone, "America/New_York");
+        assert_eq!(exchanges_data.data[0].timezone.abbr, "EST");
+        assert_eq!(exchanges_data.data[0].timezone.abbr_dst, "EDT");
+        assert_eq!(exchanges_data.data[0].currency.code, "USD");
+        assert_eq!(exchanges_data.data[0].currency.symbol, "$");
+        assert_eq!(exchanges_data.data[0].currency.name, "US Dollar");
     }
 }
