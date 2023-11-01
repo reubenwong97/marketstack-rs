@@ -58,6 +58,7 @@ pub mod common;
 pub mod currencies;
 pub mod dividends;
 pub mod eod;
+pub mod exchanges;
 pub mod paged;
 pub mod splits;
 pub mod tickers;
