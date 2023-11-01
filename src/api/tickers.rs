@@ -107,7 +107,7 @@ impl<'a> TickersBuilder<'a> {
         Ok(new)
     }
 
-    //// Check that `Tickers` contains valid endpoint combinations.
+    /// Check that `Tickers` contains valid endpoint combinations.
     fn validate(&self) -> Result<(), String> {
         let active_fields = [
             self.eod.is_some(),

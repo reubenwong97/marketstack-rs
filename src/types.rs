@@ -237,13 +237,44 @@ pub struct ExchangesData {
     pub data: Vec<ExchangesDataItem>,
 }
 
+/// Rust representation of a single data item from Marketstack `exchanges/[mic]/eod`` response.
+/// Implementation seems slightly repetitive, but return types from Marketstack are slightly
+/// inconsistent for this endpoint.
+/// Marketstack somehow returns inconsistent data: Country code is not returned here.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ExchangesEodDataInner {
+    /// Name of the stock exchange associated with the given stock ticker.
+    pub name: String,
+    /// Name of the stock exchange associated with the given stock ticker.
+    pub acronym: String,
+    /// MIC identification of the stock exchange associated with the given stock ticker.
+    pub mic: String,
+    /// Country of the stock exchange associated with the given stock ticker.
+    pub country: String,
+    /// City of the stock exchange associated with the given stock ticker.
+    pub city: String,
+    /// Website URL of the stock exchange associated with the given stock ticker.
+    pub website: String,
+    /// Collection of eod data for the exchange.
+    pub eod: Vec<EodDataItem>,
+}
+
+/// Rust representation of the JSON response from `exchanges/[mic]/eod` marketstack endpoint.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ExchangesEodData {
+    /// Corresponds to pagination entry from JSON response from marketstack.
+    pub pagination: PaginationInfo,
+    /// Corresponds to data entry from JSON response from marketstack.
+    pub data: ExchangesEodDataInner,
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::{Datelike, NaiveDate};
 
     use crate::{
-        CurrenciesData, DividendsData, EodData, EodDataItem, ExchangesData, SplitsData,
-        TickersData, TimezonesData,
+        CurrenciesData, DividendsData, EodData, EodDataItem, ExchangesData, ExchangesEodData,
+        SplitsData, TickersData, TimezonesData,
     };
 
     #[test]
@@ -656,5 +687,72 @@ mod tests {
         assert_eq!(exchanges_data.data[0].currency.code, "USD");
         assert_eq!(exchanges_data.data[0].currency.symbol, "$");
         assert_eq!(exchanges_data.data[0].currency.name, "US Dollar");
+    }
+
+    #[test]
+    fn test_deserialize_exchanges_eod() {
+        let json_data = r#"{
+            "pagination": {
+              "limit": 2,
+              "offset": 0,
+              "count": 2,
+              "total": 251
+            },
+            "data": {
+              "name": "NASDAQ Stock Exchange",
+              "acronym": "NASDAQ",
+              "mic": "XNAS",
+              "country": "USA",
+              "city": "New York",
+              "website": "WWW.NASDAQ.COM",
+              "eod": [
+                {
+                  "open": 169.35,
+                  "high": 170.9,
+                  "low": 167.9,
+                  "close": 170.77,
+                  "volume": 44768914,
+                  "adj_high": 170.9,
+                  "adj_low": 167.9,
+                  "adj_close": 170.77,
+                  "adj_open": 169.35,
+                  "adj_volume": 44846017,
+                  "split_factor": 1,
+                  "dividend": 0,
+                  "symbol": "AAPL",
+                  "exchange": "XNAS",
+                  "date": "2023-10-31T00:00:00+0000"
+                },
+                {
+                  "open": 169.02,
+                  "high": 171.17,
+                  "low": 168.87,
+                  "close": 170.29,
+                  "volume": 51082900,
+                  "adj_high": 171.17,
+                  "adj_low": 168.87,
+                  "adj_close": 170.29,
+                  "adj_open": 169.02,
+                  "adj_volume": 51130955,
+                  "split_factor": 1,
+                  "dividend": 0,
+                  "symbol": "AAPL",
+                  "exchange": "XNAS",
+                  "date": "2023-10-30T00:00:00+0000"
+                }
+              ]
+            }
+          }"#;
+
+        let exchanges_eod_result: ExchangesEodData = serde_json::from_str(json_data).unwrap();
+
+        assert_eq!(exchanges_eod_result.pagination.limit, 2);
+        assert_eq!(exchanges_eod_result.data.name, "NASDAQ Stock Exchange");
+        assert_eq!(exchanges_eod_result.data.acronym, "NASDAQ");
+        assert_eq!(exchanges_eod_result.data.mic, "XNAS");
+        assert_eq!(exchanges_eod_result.data.country, "USA");
+        assert_eq!(exchanges_eod_result.data.city, "New York");
+        assert_eq!(exchanges_eod_result.data.website, "WWW.NASDAQ.COM");
+        assert_eq!(exchanges_eod_result.data.eod[0].open, 169.35);
     }
 }
