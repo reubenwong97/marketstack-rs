@@ -1,5 +1,6 @@
+use chrono::NaiveDate;
 use marketstack::api::eod::Eod;
-use marketstack::api::exchanges::{self, Exchanges};
+use marketstack::api::exchanges::Exchanges;
 use marketstack::api::Query;
 use marketstack::{ExchangesData, ExchangesDataItem, ExchangesEodData, Marketstack};
 
@@ -61,4 +62,48 @@ fn test_exchanges_mic_eod() {
     let exchanges_eod_result: ExchangesEodData = endpoint.query(&client).unwrap();
 
     assert_eq!(exchanges_eod_result.data.eod[0].symbol, "AAPL")
+}
+
+#[test]
+#[ignore]
+fn test_exchanges_mic_eod_latest() {
+    let api_key = setup::setup_key();
+    let client = Marketstack::new_insecure("api.marketstack.com", api_key).unwrap();
+
+    let endpoint = Exchanges::builder()
+        .mic("XNAS")
+        .eod(Eod::builder().symbol("AAPL").latest(true).build().unwrap())
+        .build()
+        .unwrap();
+
+    let exchanges_eod_latest_result: ExchangesEodData = endpoint.query(&client).unwrap();
+
+    assert_eq!(exchanges_eod_latest_result.data.eod[0].symbol, "AAPL");
+}
+
+#[test]
+#[ignore]
+fn test_exchanges_mic_eod_date() {
+    let api_key = setup::setup_key();
+    let client = Marketstack::new_insecure("api.marketstack.com", api_key).unwrap();
+
+    let endpoint = Exchanges::builder()
+        .mic("XNAS")
+        .eod(
+            Eod::builder()
+                .date(NaiveDate::from_ymd_opt(2023, 9, 27).unwrap())
+                .symbol("AAPL")
+                .build()
+                .unwrap(),
+        )
+        .build()
+        .unwrap();
+
+    let exchanges_eod_date_result: ExchangesEodData = endpoint.query(&client).unwrap();
+
+    assert_eq!(exchanges_eod_date_result.data.eod[0].symbol, "AAPL");
+    assert_eq!(
+        exchanges_eod_date_result.data.eod[0].volume,
+        66830700 as f64
+    );
 }
