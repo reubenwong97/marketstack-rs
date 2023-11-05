@@ -302,7 +302,7 @@ pub struct IntradayData {
 
 #[cfg(test)]
 mod tests {
-    use chrono::{DateTime, Datelike, NaiveDate, NaiveTime};
+    use chrono::{Datelike, NaiveDate};
 
     use crate::{
         CurrenciesData, DividendsData, EodData, EodDataItem, ExchangesData, ExchangesEodData,
