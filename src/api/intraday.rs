@@ -1,4 +1,62 @@
 //! Implemented endpoints for `intraday`, `intraday/latest` and `intraday/[date]`
+//!
+//! # Example
+//!
+//! ```rust,no_run
+//! use marketstack::api::common::Interval;
+//! use marketstack::api::{self, Query};
+//! use marketstack::api::intraday::Intraday;
+//! use marketstack::{Marketstack, IntradayData};
+//!
+//! // Create an insecure client.
+//! let client = Marketstack::new_insecure("api.marketstack.com", "private-token").unwrap();
+//!
+//! // Create the `intraday` endpoint.
+//! let endpoint = Intraday::builder()
+//!     .symbol("AAPL")
+//!     .interval(Interval::ThirtyMinutes)
+//!     .build()
+//!     .unwrap();
+//!
+//! // Call the endpoint. The return type decides how to represent the value.
+//! let intraday_data: IntradayData = endpoint.query(&client).unwrap();
+//!
+//! // Data has been deserialized for you into `IntradayData`
+//! assert_eq!(intraday_data.data.len(), 100);
+//! assert!(intraday_data.data.iter().all(|intraday| intraday.symbol == "AAPL"));
+//! ```
+//!
+//! Similar to the `eod` endpoint, `intraday` supports the same endpoint features.
+//!
+//! # Using Intraday Features
+//!
+//! ```rust,no_run
+//! use chrono::NaiveDate;
+//!
+//! use marketstack::api::common::Interval;
+//! use marketstack::api::{self, Query};
+//! use marketstack::api::intraday::Intraday;
+//! use marketstack::{Marketstack, IntradayData};
+//!
+//! let client = Marketstack::new_insecure("api.marketstack.com", "private-token").unwrap();
+//!
+//! // Create endpoint for `intraday/latest`.
+//! let endpoint = Intraday::builder().symbol("AAPL").latest(true).build().unwrap();
+//!
+//! // OR create endpoint for `intraday/[date]`.
+//! let endpoint = Intraday::builder()
+//!     .symbol("AAPL")
+//!     .date(NaiveDate::from_ymd(2019, 1, 1))
+//!     .interval(Interval::ThirtyMinutes)
+//!     .build()
+//!     .unwrap();
+//!
+//! // Call the endpoint. The return type decides how to represent the value.
+//! let intraday_data: IntradayData = endpoint.query(&client).unwrap();
+//!
+//! // Data has been deserialized for you into `IntradayData`
+//! assert_eq!(intraday_data.data.len(), 14);  // 14 30-minute trading intervals in a day
+//! ```
 
 use std::collections::BTreeSet;
 
