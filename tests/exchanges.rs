@@ -102,8 +102,5 @@ fn test_exchanges_mic_eod_date() {
     let exchanges_eod_date_result: ExchangesEodData = endpoint.query(&client).unwrap();
 
     assert_eq!(exchanges_eod_date_result.data.eod[0].symbol, "AAPL");
-    assert_eq!(
-        exchanges_eod_date_result.data.eod[0].volume,
-        66830700 as f64
-    );
+    assert_eq!(exchanges_eod_date_result.data.eod[0].volume, 66830700_f64);
 }
