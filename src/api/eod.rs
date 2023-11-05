@@ -1,4 +1,55 @@
 //! Implemented endpoints for `eod`, `eod/latest `and `eod/[date]`.
+//!
+//! # Example
+//!
+//! ```rust,no_run
+//! use marketstack::api::{self, Query};
+//! use marketstack::api::eod::Eod;
+//! use marketstack::{Marketstack, EodData};
+//!
+//! // Create an insecure client.
+//! let client = Marketstack::new_insecure("api.marketstack.com", "private-token").unwrap();
+//!
+//! // Create the eod endpoint.
+//! let endpoint = Eod::builder().symbol("AAPL").build().unwrap();
+//!
+//! // Call the endpoint. The return type decides how to represent the value.
+//! let eod_data: EodData = endpoint.query(&client).unwrap();
+//!
+//! // Data has been deserialized for you into `EodData`.
+//! assert_eq!(eod_data.data.len(), 100);
+//! assert_eq!(eod_data.pagination.limit, 100);
+//! assert!(eod_data.data.iter().all(|eod| eod.symbol == "AAPL"));
+//! ```
+//!
+//! Beyond the simple `eod` endpoint, the Marketstack API also implements
+//! "endpoint features", which extend the endpoint for different behaviour.
+//! The two available ones take the form of `eod/latest` and `eod/[date]`.
+//!
+//! # Using Eod Features
+//!
+//! ```rust,no_run
+//! use chrono::NaiveDate;
+//!
+//! // Create endpoint for `eod/latest`.
+//! let endpoint = Eod::builder().latest(true).build().unwrap();
+//!
+//! // OR create endpoint for `eod/[date]`
+//! let endpoint = Eod::builder().date(NaiveDate::from_ymd(2022, 1, 4)).build().unwrap();
+//!
+//! // Call the endpoint.
+//! let eod_data: EodData = endpoint.query(&client).unwrap();
+//!
+//! assert_eq!(eod_data.data.len(), 1);
+//! ```
+//!
+//! Note that `eod/latest` and `eod/[date]` cannot be used together.
+//!
+//! ```rust,no_run
+//! let endpoint = Eod::builder().latest(true).date(NaiveDate::from_ymd(2022, 1, 4)).build();
+//!
+//! assert!(endpoint.is_err());
+//! ```
 
 use std::collections::BTreeSet;
 

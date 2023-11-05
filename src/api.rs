@@ -29,7 +29,7 @@
 //! // Create the client.
 //! let client = Marketstack::new("api.marketstack.com", "private-token").unwrap();
 //!
-//! // OR create an insecure token (if on the Free plan).
+//! // OR create an insecure client (if on the Free plan).
 //! let client = Marketstack::new_insecure("api.marketstack.com", "private-token").unwrap();
 //!
 //! // Create a simple endpoint. This one gets the "eod" for the AAPL symbol.

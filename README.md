@@ -6,7 +6,7 @@
 [![Builds](https://img.shields.io/github/actions/workflow/status/reubenwong97/marketstack-rs/general.yml
 )](https://github.com/reubenwong97/marketstack-rs)
 
-For more detailed documentation and examples, please check out the [documentation](https://docs.rs/marketstack/latest/marketstack/).
+For more details about this crate and examples, please check out the [documentation](https://docs.rs/marketstack/latest/marketstack/).
 
 # Marketstack API
 
