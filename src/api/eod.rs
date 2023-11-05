@@ -31,6 +31,8 @@
 //! ```rust,no_run
 //! use chrono::NaiveDate;
 //!
+//! use marketstack::api::eod::Eod;
+//!
 //! // Create endpoint for `eod/latest`.
 //! let endpoint = Eod::builder().latest(true).build().unwrap();
 //!
@@ -46,6 +48,10 @@
 //! Note that `eod/latest` and `eod/[date]` cannot be used together.
 //!
 //! ```rust,no_run
+//! use chrono::NaiveDate;
+//!
+//! use marketstack::api::eod::Eod;
+//!
 //! let endpoint = Eod::builder().latest(true).date(NaiveDate::from_ymd(2022, 1, 4)).build();
 //!
 //! assert!(endpoint.is_err());

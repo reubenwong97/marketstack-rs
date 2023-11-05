@@ -50,3 +50,7 @@ All endpoints return data types of the caller's choosing that implement `serde`'
 This crate evolved out of a need from a personal project to pull data from an affordable / free data provider. I noticed that one had not been created and therefore implemented this myself. While I have begun using it, I have not yet extensively tested it and certain paid endpoints could not be implemented as I did not have access and could not discern their structure from the documentation.
 
 Therefore, I would caution users against using this for production-level projects. That said, feel free to raise issues, create pull requests or fork this repo.
+
+## Acknowledgements
+
+This crate's design is inspired by the helpful work of the maintainers of the [`Gitlab`](https://gitlab.kitware.com/utils/rust-gitlab) crate, as well as the [`illuminating blog`](https://plume.benboeckel.net/~/JustAnotherBlog/designing-rust-bindings-for-rest-ap-is) post by [Ben Boeckel](https://plume.benboeckel.net/@/ben.boeckel).
