@@ -268,13 +268,45 @@ pub struct ExchangesEodData {
     pub data: ExchangesEodDataInner,
 }
 
+/// Rust representation of a single data item from Marketstack `intraday` response.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct IntradayDataItem {
+    /// Raw opening price of the given stock ticker.
+    pub open: f64,
+    /// Raw high price of the given stock ticker.
+    pub high: f64,
+    /// Raw low price of the given stock ticker.
+    pub low: f64,
+    /// Last executed trade of the given symbol on its exchange.
+    pub last: f64,
+    /// Raw closing price of the given stock ticker.
+    pub close: f64,
+    /// Raw volume of the given stock ticker.
+    pub volume: f64,
+    /// Exact UTC date/time the given data was collected in ISO-8601 format.
+    pub date: DateTime<Utc>,
+    /// Stock ticker symbol of the current data object.
+    pub symbol: String,
+    /// Exchange MIC identification associated with the current data object.
+    pub exchange: String,
+}
+
+/// Rust representation of the JSON response from `intraday` marketstack endpoint.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct IntradayData {
+    /// Corresponds to pagination entry from JSON response from marketstack.
+    pub pagination: PaginationInfo,
+    /// Corresponds to data entry from JSON response from marketstack.
+    pub data: Vec<IntradayDataItem>,
+}
+
 #[cfg(test)]
 mod tests {
-    use chrono::{Datelike, NaiveDate};
+    use chrono::{DateTime, Datelike, NaiveDate, NaiveTime};
 
     use crate::{
         CurrenciesData, DividendsData, EodData, EodDataItem, ExchangesData, ExchangesEodData,
-        SplitsData, TickersData, TimezonesData,
+        IntradayData, SplitsData, TickersData, TimezonesData,
     };
 
     #[test]
@@ -754,5 +786,60 @@ mod tests {
         assert_eq!(exchanges_eod_result.data.city, "New York");
         assert_eq!(exchanges_eod_result.data.website, "WWW.NASDAQ.COM");
         assert_eq!(exchanges_eod_result.data.eod[0].open, 169.35);
+    }
+
+    #[test]
+    fn test_deserialize_intraday() {
+        let json_data = r#"{
+            "pagination": {
+              "limit": 2,
+              "offset": 0,
+              "count": 2,
+              "total": 11872
+            },
+            "data": [
+              {
+                "open": 173.75,
+                "high": 176.81,
+                "low": 173.37,
+                "last": 176.71,
+                "close": 177.57,
+                "volume": 1796985,
+                "date": "2023-11-03T20:00:00+0000",
+                "symbol": "AAPL",
+                "exchange": "IEXG"
+              },
+              {
+                "open": 173.75,
+                "high": 176.51,
+                "low": 173.37,
+                "last": 176.13,
+                "close": 177.57,
+                "volume": 1516371,
+                "date": "2023-11-03T19:00:00+0000",
+                "symbol": "AAPL",
+                "exchange": "IEXG"
+              }
+            ]
+          }"#;
+
+        let intraday_data: IntradayData = serde_json::from_str(json_data).unwrap();
+
+        assert_eq!(intraday_data.pagination.limit, 2);
+        assert_eq!(intraday_data.data[0].open, 173.75);
+        assert_eq!(intraday_data.data[0].high, 176.81);
+        assert_eq!(intraday_data.data[0].low, 173.37);
+        assert_eq!(intraday_data.data[0].last, 176.71);
+        assert_eq!(intraday_data.data[0].close, 177.57);
+        assert_eq!(intraday_data.data[0].volume, 1796985.0);
+
+        let naive_date_time = NaiveDate::from_ymd_opt(2023, 11, 3)
+            .unwrap()
+            .and_hms_opt(20, 0, 0)
+            .unwrap()
+            .and_utc();
+        assert_eq!(intraday_data.data[0].date, naive_date_time);
+        assert_eq!(intraday_data.data[0].symbol, "AAPL");
+        assert_eq!(intraday_data.data[0].exchange, "IEXG");
     }
 }
