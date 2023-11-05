@@ -1,4 +1,66 @@
 //! Implemented for `exchanges` and associated endpoints.
+//!
+//! The `exchanges` endpoint is an interesting one as it adopts features and
+//! params from other endpints like `eod`. Therefore, implementation for this module
+//! re-uses the logic by nesting `eod`'s builder struct within `exchanges`'s builder.
+//! I will provide an example below.
+//!
+//! # Nesting `eod`'s builder struct within `exchanges`'s builder
+//!
+//! ```rust,no_run
+//! use chrono::NaiveDate;
+//!
+//! use marketstack::api::common::SortOrder;
+//! use marketstack::api::{self, Query};
+//! use marketstack::api::eod::Eod;
+//! use marketstack::api::exchanges::Exchanges;
+//! use marketstack::{Marketstack, ExchangesEodData};
+//!
+//! // Create an insecure client.
+//! let client = Marketstack::new_insecure("api.marketstack.com", "private-token").unwrap();
+//!
+//! // Create the `exchanges/[mic]/eod` endpoint.
+//! let endpoint = Exchanges::builder()
+//!     .mic("XNAS")
+//!     .eod(Eod::builder()
+//!         .limit(5)
+//!         .unwrap()
+//!         .date_from(NaiveDate::from_ymd_opt(2023, 5, 5).unwrap())
+//!         .date_to(NaiveDate::from_ymd_opt(2023, 10, 5).unwrap())
+//!         .sort(SortOrder::Ascending)
+//!         .symbols(["AAPL", "TSLA"].iter().copied())
+//!         .build()
+//!         .unwrap())
+//!     .build()
+//!     .unwrap();
+//!
+//! // Query the endpoint.
+//! let exchanges_eod_result: ExchangesEodData = endpoint.query(&client).unwrap();
+//! ```
+//!
+//! The interesting thing is about re-using the `Eod` builder is that it allows
+//! all its features to be present even within the `exchanges` endpoint. For example,
+//! we can use `exchanges/[mic]/eod/latest` by doing the following:
+//!
+//! ```rust,no_run
+//! use marketstack::api::{self, Query};
+//! use marketstack::api::exchanges::Exchanges;
+//! use marketstack::{Marketstack, ExchangesEodData};
+//! use marketstack::api::eod::Eod;
+//!
+//! // Create an insecure client.
+//! let client = Marketstack::new_insecure("api.marketstack.com", "private-token").unwrap();
+//!
+//! // Create the `exchanges/[mic]/eod/latest` endpoint.
+//! let endpoint = Exchanges::builder()
+//!     .mic("XNAS")
+//!     .eod(Eod::builder().latest(true).build().unwrap())
+//!     .build()
+//!     .unwrap();
+//!
+//! // Query the endpoint.
+//! let exchanges_eod_latest_result: ExchangesEodData = endpoint.query(&client).unwrap();
+//! ```
 
 use std::borrow::Cow;
 
