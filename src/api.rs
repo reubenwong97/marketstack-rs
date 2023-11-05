@@ -35,7 +35,7 @@
 //! // Create a simple endpoint. This one gets the "eod" for the AAPL symbol.
 //! let endpoint = eod::Eod::builder().symbol("AAPL").build().unwrap();
 //! // Call the endpoint. The return type decides how to represent the value.
-//! let eod_date: EodData = endpoint.query(&client).unwrap();
+//! let eod_data: EodData = endpoint.query(&client).unwrap();
 //!
 //! // Some endpoints support pagination. Since Marketstack does pagination through query
 //! // params, we simply specify them in the endpoint builder.
