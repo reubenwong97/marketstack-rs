@@ -31,13 +31,17 @@
 //! ```rust,no_run
 //! use chrono::NaiveDate;
 //!
+//! use marketstack::api::{self, Query};
 //! use marketstack::api::eod::Eod;
+//! use marketstack::{Marketstack, EodData};
+//!
+//! let client = Marketstack::new_insecure("api.marketstack.com", "private-token").unwrap();
 //!
 //! // Create endpoint for `eod/latest`.
 //! let endpoint = Eod::builder().latest(true).build().unwrap();
 //!
 //! // OR create endpoint for `eod/[date]`
-//! let endpoint = Eod::builder().date(NaiveDate::from_ymd(2022, 1, 4)).build().unwrap();
+//! let endpoint = Eod::builder().date(NaiveDate::from_ymd_opt(2022, 1, 4).unwrap()).build().unwrap();
 //!
 //! // Call the endpoint.
 //! let eod_data: EodData = endpoint.query(&client).unwrap();
