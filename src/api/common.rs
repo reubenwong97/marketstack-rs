@@ -41,6 +41,7 @@ impl ParamValue<'static> for SortOrder {
 }
 
 /// Data interval for `intraday` endpoint.
+#[derive(Debug, Clone)]
 pub enum Interval {
     /// 1min interval.
     OneMinute,
