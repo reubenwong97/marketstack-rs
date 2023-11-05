@@ -6,7 +6,7 @@
 [![Builds](https://img.shields.io/github/actions/workflow/status/reubenwong97/marketstack-rs/general.yml
 )](https://github.com/reubenwong97/marketstack-rs)
 
-For more detailed documentation and examples, please visit [docs.rs](https://docs.rs/marketstack/latest/marketstack/).
+For more detailed documentation and examples, please check out the [documentation](https://docs.rs/marketstack/latest/marketstack/).
 
 # Marketstack API
 
@@ -21,6 +21,7 @@ let client = Marketstack::new_insecure("api.marketstack.com", "private-token").u
 
 // Create endpoint to query end of day data for AAPL. Corresponds to `eod` endpoint.
 let endpoint = Eod::builder().symbol("AAPL").build().unwrap();
+
 // Call the endpoint and retrieve data from Marketstack. Data is deserialized
 // for you into a Rust type: `EodData`.
 let eod_data: EodData = endpoint.query(&client).unwrap();
