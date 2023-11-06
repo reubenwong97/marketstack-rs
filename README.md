@@ -53,4 +53,4 @@ Therefore, I would caution users against using this for production-level project
 
 ## Acknowledgements
 
-This crate's design is inspired by the helpful work of the maintainers of the [`Gitlab`](https://gitlab.kitware.com/utils/rust-gitlab) crate, as well as the [`illuminating blog`](https://plume.benboeckel.net/~/JustAnotherBlog/designing-rust-bindings-for-rest-ap-is) post by [Ben Boeckel](https://plume.benboeckel.net/@/ben.boeckel).
+This crate's design is inspired by the helpful work of the maintainers of the [`Gitlab`](https://gitlab.kitware.com/utils/rust-gitlab) crate, as well as the [illuminating blog](https://plume.benboeckel.net/~/JustAnotherBlog/designing-rust-bindings-for-rest-ap-is) post by [Ben Boeckel](https://plume.benboeckel.net/@/ben.boeckel).
