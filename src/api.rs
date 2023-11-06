@@ -43,6 +43,12 @@
 //! // a Result.
 //! let pageable_endpoint = eod::Eod::builder().symbol("AAPL").limit(5).unwrap().build().unwrap();
 //! ```
+//!
+//! # Using Marketstack API
+//!
+//! The above provides an example as to how to query `eod` data from marketstack. To use the other
+//! builders, please see the respective modules within `api` for more information. The modules are
+//! organized by the endpoints that are provided by marketstack.
 
 mod client;
 mod endpoint;

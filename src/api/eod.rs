@@ -10,7 +10,7 @@
 //! // Create an insecure client.
 //! let client = Marketstack::new_insecure("api.marketstack.com", "private-token").unwrap();
 //!
-//! // Create the eod endpoint.
+//! // Create the `eod` endpoint.
 //! let endpoint = Eod::builder().symbol("AAPL").build().unwrap();
 //!
 //! // Call the endpoint. The return type decides how to represent the value.
@@ -38,10 +38,14 @@
 //! let client = Marketstack::new_insecure("api.marketstack.com", "private-token").unwrap();
 //!
 //! // Create endpoint for `eod/latest`.
-//! let endpoint = Eod::builder().latest(true).build().unwrap();
+//! let endpoint = Eod::builder().symbol("AAPL").latest(true).build().unwrap();
 //!
-//! // OR create endpoint for `eod/[date]`
-//! let endpoint = Eod::builder().date(NaiveDate::from_ymd_opt(2022, 1, 4).unwrap()).build().unwrap();
+//! // OR create endpoint for `eod/[date]`.
+//! let endpoint = Eod::builder()
+//!     .symbol("AAPL")
+//!     .date(NaiveDate::from_ymd_opt(2022, 1, 4).unwrap())
+//!     .build()
+//!     .unwrap();
 //!
 //! // Call the endpoint.
 //! let eod_data: EodData = endpoint.query(&client).unwrap();
@@ -56,7 +60,7 @@
 //!
 //! use marketstack::api::eod::Eod;
 //!
-//! let endpoint = Eod::builder().latest(true).date(NaiveDate::from_ymd(2022, 1, 4)).build();
+//! let endpoint = Eod::builder().latest(true).date(NaiveDate::from_ymd_opt(2022, 1, 4).unwrap()).build();
 //!
 //! assert!(endpoint.is_err());
 //! ```
