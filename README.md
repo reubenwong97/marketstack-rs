@@ -1,3 +1,7 @@
+# Deprecated
+
+Marketstack has recently versioned their API and removed their free tier.
+
 [![Crates.io](https://img.shields.io/crates/v/marketstack
 )](https://crates.io/crates/marketstack)
 [![Documentation](https://img.shields.io/docsrs/marketstack/latest
